@@ -346,11 +346,26 @@
     $('#kRate').textContent = need ? Math.round(got / need * 100) : 0;
     $('#kAll').textContent = incPer.filter(function (p) { return p.total && p.n === p.total; }).length;
     $('#kMiss').textContent = need - got;
+    renderMissingPicker(M);
     renderBars(M);
     renderTeachers(M);
     renderTrainings();
     renderRequests();
   }
+
+  function renderMissingPicker(M) {
+    var select = $('#missingTraining');
+    select.innerHTML = '<option value="">' + (M.tr.length ? '연수를 선택해 주세요' : '사용 중인 연수가 없습니다') + '</option>' + M.tr.map(function (t) {
+      var n = M.inc.filter(function (x) { return !(M.done[x.id] && M.done[x.id][t.id]); }).length;
+      return '<option value="' + esc(t.id) + '">' + esc(t.name) + ' · 미이수 ' + n + '명</option>';
+    }).join('');
+    select.disabled = !M.tr.length;
+  }
+  $('#missingTraining').addEventListener('change', function () {
+    var id = this.value;
+    this.value = '';
+    if (id && S.a) openMissing(id);
+  });
 
   function renderBars(M) {
     var sort = $('#oSort').value;
@@ -373,6 +388,7 @@
   function openMissing(trId) {
     var M = model();
     var t = M.tr.filter(function (x) { return x.id === trId; })[0];
+    if (!t) return;
     var miss = M.inc.filter(function (x) { return !(M.done[x.id] && M.done[x.id][trId]); });
     $('#missTitle').textContent = '⏳ ' + t.name;
     $('#missSub').textContent = miss.length ? '아직 이수하지 않은 교원 ' + miss.length + '명입니다. 이름을 복사해 메신저로 안내할 수 있습니다.' : '모든 교원이 이수했습니다 🎉';

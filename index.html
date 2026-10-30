@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="assets/lucian.css?v=20261031e">
 <link rel="stylesheet" href="assets/style.css?v=20261031e">
+<link rel="stylesheet" href="assets/refresh.css?v=20261031-design2">
 </head>
 <body>
 <div class="blob b1" aria-hidden="true"></div>
@@ -21,6 +22,7 @@
       <span class="mark">Z</span>
       <span><b>Zero-ON 법정의무연수</b><small id="schoolName">이수 관리</small></span>
     </a>
+    <span class="header-caption">선생님의 배움을, 더 간편하게</span>
     <button class="btn ghost sm" id="logoutBtn" type="button" hidden>로그아웃</button>
   </div>
 </header>
@@ -29,17 +31,34 @@
 
   <section class="hero">
     <span class="eyebrow" id="eyebrow">✨ 법정의무연수 이수 관리</span>
-    <h1>법정의무연수 이수 현황을<br><span class="grad">한눈에 확인하세요</span></h1>
-    <p class="lead">선생님은 <strong>수료한 연수를 직접 표시</strong>하고, 담당자는 <strong>학교 전체 이수율과 미이수 교원</strong>을 바로 확인합니다.</p>
+    <h1>연수 기록은 간편하게,<br><span class="grad">수업에 더 집중하세요.</span></h1>
+    <p class="lead">수료한 연수를 기록하고, 남은 연수를 확인하세요.<br>선생님의 이수 현황부터 학교 전체 현황까지 한곳에서 관리합니다.</p>
 
     <!-- Lucian UX/UI Prompt #039 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#039 -->
     <div class="ux u039" id="roleTabs">
       <div class="u039-tabs" role="tablist" aria-label="사용자 선택">
         <span class="u039-pill" aria-hidden="true"></span>
-        <button class="u039-tab" type="button" role="tab" aria-selected="true" data-role="teacher">🙋 선생님</button>
-        <button class="u039-tab" type="button" role="tab" aria-selected="false" data-role="admin">🗂️ 담당자</button>
+        <button class="u039-tab" type="button" role="tab" aria-selected="true" data-role="teacher">선생님</button>
+        <button class="u039-tab" type="button" role="tab" aria-selected="false" data-role="admin">담당자</button>
       </div>
     </div>
+    <svg class="hero-illustration" viewBox="0 0 400 180" fill="none" aria-hidden="true">
+      <rect x="0" y="8" width="366" height="156" rx="20" fill="#E9EFFA"/>
+      <rect x="24" y="28" width="240" height="132" rx="13" fill="white" stroke="#D6E1F2"/>
+      <rect x="44" y="49" width="76" height="7" rx="3.5" fill="#8CA6D1"/>
+      <circle cx="52" cy="81" r="9" fill="#DDF1E9"/>
+      <path d="m48 81 3 3 5-6" stroke="#167965" stroke-width="2" stroke-linecap="round"/>
+      <rect x="72" y="78" width="144" height="6" rx="3" fill="#D6E1F2"/>
+      <circle cx="52" cy="111" r="9" fill="#DDF1E9"/>
+      <path d="m48 111 3 3 5-6" stroke="#167965" stroke-width="2" stroke-linecap="round"/>
+      <rect x="72" y="108" width="112" height="6" rx="3" fill="#D6E1F2"/>
+      <rect x="72" y="133" width="130" height="5" rx="2.5" fill="#E9EFF7"/>
+      <rect x="248" y="54" width="112" height="112" rx="18" fill="#245BD8"/>
+      <circle cx="304" cy="102" r="26" stroke="white" stroke-opacity=".25" stroke-width="6"/>
+      <path d="M304 76a26 26 0 1 1-26 26" stroke="white" stroke-width="6" stroke-linecap="round"/>
+      <path d="m293 101 8 8 15-17" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="280" y="145" width="48" height="4" rx="2" fill="white" fill-opacity=".65"/>
+    </svg>
   </section>
 
   <!-- ═══════════ 선생님 ═══════════ -->
@@ -49,8 +68,8 @@
       <!-- 1. 이름 + 비밀번호 -->
       <div class="step" id="tStepLogin">
         <p class="sec-eye">TEACHER LOGIN</p>
-        <h2>🙋 선생님 로그인</h2>
-        <p class="muted">담당자가 등록한 교원 명단의 이름으로 들어옵니다.<br><strong>처음 비밀번호는 1234</strong>이고, 첫 로그인 때 본인 비밀번호로 바꿉니다.</p>
+        <h2>나의 연수 기록 시작하기</h2>
+        <p class="muted">담당자가 등록한 교원 명단의 이름으로 들어옵니다.<br><strong>처음 비밀번호는 1234</strong>이고, 첫 로그인 때 본인 비밀번호로 바꿉니다.<br>(명단이 없는 경우, 다음 화면에서 등록 요청하실 수 있습니다)</p>
         <form id="tLoginForm" class="stack-form" autocomplete="off">
           <label class="field"><span>이름</span><input id="tName" type="text" maxlength="20" required placeholder="예: 홍길동" autocomplete="name"></label>
           <label class="field"><span>비밀번호</span><input id="tPw" type="password" maxlength="30" minlength="4" required placeholder="처음이시면 1234" autocomplete="current-password"></label>
@@ -147,8 +166,8 @@
 
     <div class="card login" id="aLogin">
       <p class="sec-eye">ADMIN</p>
-      <h2>🗂️ 담당자 로그인</h2>
-      <p class="muted">담당자 비밀번호를 입력해 주세요. <strong>처음 비밀번호는 1234</strong>이며, 로그인한 뒤 ⚙️ 설정에서 꼭 바꿔 주세요.</p>
+      <h2>학교 연수 현황 관리하기</h2>
+      <p class="muted">담당자 비밀번호를 입력해 주세요.<br><strong>처음 비밀번호는 1234</strong>이며, 로그인한 뒤 ⚙️ 설정에서 꼭 바꿔 주세요.</p>
       <form id="aLoginForm" class="row-form">
         <label class="field grow"><span>비밀번호</span><input id="aPw" type="password" required autocomplete="current-password"></label>
         <button class="btn primary" type="submit">로그인</button>
@@ -191,7 +210,12 @@
               <button class="btn ghost sm" type="button" id="exportBtn">⬇️ 엑셀 내려받기</button>
             </div>
           </div>
-          <p class="muted sm">막대를 누르면 아직 이수하지 않은 교원 명단이 열립니다.</p>
+          <div class="missing-picker">
+            <label class="field" for="missingTraining"><span>연수별 미이수자 명단</span>
+              <select id="missingTraining" aria-describedby="missingHelp"><option value="">연수를 선택해 주세요</option></select>
+            </label>
+            <p class="muted sm" id="missingHelp">연수를 선택하면 미이수자 명단이 열립니다. 아래 이수율 막대를 눌러서도 확인할 수 있습니다.</p>
+          </div>
           <ul class="bars" id="oBars"></ul>
         </div>
       </div>
@@ -274,6 +298,11 @@
       </div>
     </div>
   </section>
+  <aside class="entry-guide" aria-label="이용 순서">
+    <div class="guide-item"><span class="guide-number">01</span><div><h3>내 이름으로 로그인</h3><p>학교에 등록된 이름으로 시작하세요.</p></div></div>
+    <div class="guide-item"><span class="guide-number">02</span><div><h3>수료한 연수 기록</h3><p>수료증의 이수일과 이수번호를 입력하세요.</p></div></div>
+    <div class="guide-item"><span class="guide-number">03</span><div><h3>남은 연수 확인</h3><p>이수 현황과 다음에 들을 연수를 확인하세요.</p></div></div>
+  </aside>
 </main>
 
 <dialog class="sheet" id="missDlg" aria-labelledby="missTitle">
@@ -347,6 +376,6 @@
 <script src="assets/seed.js?v=20261031e"></script>
 <script src="assets/api.js?v=20261031e"></script>
 <script src="assets/ui.js?v=20261031e"></script>
-<script src="assets/app.js?v=20261031e"></script>
+<script src="assets/app.js?v=20261031-design2"></script>
 </body>
 </html>
