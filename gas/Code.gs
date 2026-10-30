@@ -257,6 +257,7 @@ var SEED = [
 ];
 
 var TOKEN_TTL = 6 * 60 * 60; // 6시간
+var DEFAULT_PW = '1234';   // 선생님 처음 비밀번호 (초기화하면 다시 이 값)
 var MAX_FAIL = 5;            // 비밀번호 연속 실패 허용 횟수
 var LOCK_SEC = 10 * 60;      // 잠금 시간
 
@@ -327,21 +328,30 @@ var ROUTES = {
   // 이름 + 비밀번호. 같은 이름이 여럿이면 id로 다시 요청합니다.
   teacherLogin: function (b) {
     var t = findTeacher_(b);
-    if (!t.pinHash) return { needSet: true, id: t.id, name: t.name };
     checkLock_(t.id);
+    if (!t.pinHash) {
+      // 아직 본인 비밀번호가 없으면 처음 비밀번호(1234)로만 들어와서 새 비밀번호를 정합니다
+      if (String(b.password || '') !== DEFAULT_PW) fail_(t.id, '처음 비밀번호는 1234입니다.');
+      CacheService.getScriptCache().remove('fail_' + t.id);
+      return { needSet: true, id: t.id, name: t.name };
+    }
     if (hash_(t.id, b.password) !== t.pinHash) fail_(t.id, '비밀번호가 맞지 않습니다.');
     CacheService.getScriptCache().remove('fail_' + t.id);
     return { token: issue_({ role: 'teacher', id: t.id }), teacher: pub_(t) };
   },
-  // 처음 로그인할 때 비밀번호 정하기 (이미 있으면 거절)
+  // 처음 로그인(1234) 뒤 본인 비밀번호 정하기 (이미 있으면 거절)
   teacherSetPassword: function (b) {
     var pw = String(b.password || '');
     if (pw.length < 4 || pw.length > 30) throw new Error('비밀번호는 4~30자로 정해 주세요.');
+    if (pw === DEFAULT_PW) throw new Error('1234가 아닌 다른 비밀번호로 정해 주세요.');
     return withLock_(function () {
       var t = teacherById_(b.id);
       if (!t.included) throw new Error('NOT_FOUND: 명단에 없습니다.');
       if (t.pinHash) throw new Error('이미 비밀번호가 있습니다. 잊으셨다면 담당자에게 초기화를 요청하세요.');
+      checkLock_(t.id);
+      if (String(b.current || '') !== DEFAULT_PW) fail_(t.id, '처음 비밀번호는 1234입니다.');
       setTeacherCell_(t.row, '비밀번호해시', hash_(t.id, pw));
+      CacheService.getScriptCache().remove('fail_' + t.id);
       log_(t.name, '비밀번호 설정', t.id);
       return { token: issue_({ role: 'teacher', id: t.id }), teacher: pub_(t) };
     });

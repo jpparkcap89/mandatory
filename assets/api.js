@@ -89,12 +89,14 @@
       if (!list.length) throw toError('NOT_FOUND: 명단에 없는 이름입니다.');
       if (list.length > 1) throw toError('MULTI: 같은 이름이 ' + list.length + '명 있습니다. 본인을 골라 주세요.', { candidates: list.map(function (t) { return { id: t.id, hint: [t.dept, t.role].filter(Boolean).join(' · ') }; }) });
       var t = list[0];
-      if (!t.pw) return { needSet: true, id: t.id, name: t.name };
+      if (!t.pw) { if (String(b.password) !== '1234') throw toError('처음 비밀번호는 1234입니다.'); return { needSet: true, id: t.id, name: t.name }; }
       if (t.pw !== String(b.password)) throw toError('비밀번호가 맞지 않습니다.');
       return { token: tok({ role: 'teacher', id: t.id }), teacher: pub(t) };
     },
     teacherSetPassword: function (b) {
       var pw = String(b.password || ''); if (pw.length < 4) throw toError('비밀번호는 4~30자로 정해 주세요.');
+      if (pw === '1234') throw toError('1234가 아닌 다른 비밀번호로 정해 주세요.');
+      if (String(b.current) !== '1234') throw toError('처음 비밀번호는 1234입니다.');
       var t = byId(b.id); if (t.pw) throw toError('이미 비밀번호가 있습니다.');
       t.pw = pw; save(); return { token: tok({ role: 'teacher', id: t.id }), teacher: pub(t) };
     },

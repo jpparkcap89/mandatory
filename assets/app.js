@@ -24,7 +24,6 @@
   }
   var S = { role: 'teacher', tToken: store.get('zo_t'), aToken: store.get('zo_a'), t: null, a: null, pending: null, chosenId: '', filter: 'all' };
 
-  if (API.demo) $('#demoBanner').hidden = false;
 
   /* ───────── 공통: 역할 탭 ───────── */
   var tabs = UI.tabs($('#roleTabs'), function (role) { showRole(role); });
@@ -77,10 +76,10 @@
     API.call('teacherLogin', { name: name, password: pw, id: S.chosenId }).then(function (d) {
       busy(btn, false);
       if (d.needSet) {
-        S.pending = { id: d.id, name: d.name, password: pw };
+        S.pending = { id: d.id, name: d.name, current: pw };
         $('#tSetName').textContent = d.name;
-        $('#tPw2').value = ''; $('#tSetMsg').textContent = '';
-        tStep('Set'); $('#tPw2').focus();
+        $('#tPwNew').value = ''; $('#tPw2').value = ''; $('#tSetMsg').textContent = '';
+        tStep('Set'); $('#tPwNew').focus();
         return;
       }
       enterTeacher(d.token);
@@ -109,9 +108,12 @@
   $('#tSetForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var p = S.pending; if (!p) return tStep('Login');
-    if ($('#tPw2').value !== p.password) { $('#tSetMsg').textContent = '처음 입력한 비밀번호와 다릅니다.'; return; }
+    var np = $('#tPwNew').value;
+    if (np.length < 4) { $('#tSetMsg').textContent = '새 비밀번호는 4자 이상입니다.'; return; }
+    if (np === '1234') { $('#tSetMsg').textContent = '1234가 아닌 다른 비밀번호로 정해 주세요.'; return; }
+    if ($('#tPw2').value !== np) { $('#tSetMsg').textContent = '새 비밀번호 확인이 다릅니다.'; return; }
     var btn = e.submitter || $('#tSetForm button[type=submit]'); busy(btn, true, '저장 중…');
-    API.call('teacherSetPassword', { id: p.id, password: p.password }).then(function (d) {
+    API.call('teacherSetPassword', { id: p.id, current: p.current, password: np }).then(function (d) {
       busy(btn, false); S.pending = null;
       toast('ok', '비밀번호를 정했습니다', '다음부터 이름과 이 비밀번호로 들어오세요');
       enterTeacher(d.token);
@@ -418,7 +420,7 @@
         '<button type="button" class="trow-head" aria-expanded="' + open + '">' +
           '<span class="avatar" aria-hidden="true">' + esc(t.name.slice(0, 1)) + '</span>' +
           '<span class="trow-name"><b>' + esc(t.name) + '</b><small>' + esc([t.dept, t.role, t.id].filter(Boolean).join(' · ')) + '</small></span>' +
-          '<span class="trow-tags">' + (!t.included ? '<em class="tag gray">집계 제외</em>' : '') + (!t.hasPin ? '<em class="tag warn">비밀번호 미설정</em>' : '') + (t.included && p.total && p.n === p.total ? '<em class="tag ok">모두 완료</em>' : '') + '</span>' +
+          '<span class="trow-tags">' + (!t.included ? '<em class="tag gray">집계 제외</em>' : '') + (!t.hasPin ? '<em class="tag warn">초기 비밀번호</em>' : '') + (t.included && p.total && p.n === p.total ? '<em class="tag ok">모두 완료</em>' : '') + '</span>' +
           '<span class="mini-prog" style="--v:' + pct.toFixed(3) + '"><i></i></span>' +
           '<span class="trow-num"><b>' + p.n + '</b>/' + p.total + '</span>' +
         '</button>' +
@@ -445,8 +447,8 @@
               if (ok) adminAct('setTeacherStatus', { id: id, included: !t.included }, t.included ? t.name + ' 선생님을 집계에서 제외했습니다' : t.name + ' 선생님을 다시 포함했습니다');
             });
           } else {
-            ask(t.name + ' 선생님의 비밀번호를 초기화할까요? 다음 로그인 때 새 비밀번호를 정하게 됩니다.', '초기화').then(function (ok) {
-              if (ok) adminAct('resetPassword', { id: id }, '비밀번호를 초기화했습니다', '선생님이 다음 로그인 때 새로 정합니다');
+            ask(t.name + ' 선생님의 비밀번호를 1234로 초기화할까요? 다음 로그인 때 새 비밀번호를 정하게 됩니다.', '초기화').then(function (ok) {
+              if (ok) adminAct('resetPassword', { id: id }, '비밀번호를 1234로 초기화했습니다', '선생님이 1234로 로그인한 뒤 새로 정합니다');
             });
           }
         });
@@ -492,7 +494,7 @@
       $$('button', li).forEach(function (b) {
         b.addEventListener('click', function () {
           var ok = b.getAttribute('data-ok') === '1', name = $('b', li).textContent;
-          (ok ? Promise.resolve(true) : ask(name + ' 선생님의 추가 요청을 거절할까요?', '거절')).then(function (go) { if (go) adminAct('resolveRequest', { id: li.getAttribute('data-id'), approve: ok }, ok ? name + ' 선생님을 명단에 추가했습니다' : '요청을 거절했습니다', ok ? '이제 이름으로 로그인할 수 있습니다' : ''); });
+          (ok ? Promise.resolve(true) : ask(name + ' 선생님의 추가 요청을 거절할까요?', '거절')).then(function (go) { if (go) adminAct('resolveRequest', { id: li.getAttribute('data-id'), approve: ok }, ok ? name + ' 선생님을 명단에 추가했습니다' : '요청을 거절했습니다', ok ? '이름과 처음 비밀번호 1234로 로그인할 수 있습니다' : ''); });
         });
       });
     });
@@ -620,7 +622,7 @@
     var btn = $('#rCommit'); busy(btn, true, '반영하는 중…');
     adminAct('importRoster', { rows: parsed.rows, excludeMissing: ex }, '명단을 반영했습니다').then(function (r) {
       busy(btn, false);
-      toast('info', '신규 ' + r.added.length + '명 · 변경 ' + (r.updated.length + r.restored.length) + '명 · 제외 ' + r.excluded.length + '명', r.skipped.length ? '건너뜀 ' + r.skipped.length + '명: ' + r.skipped.slice(0, 3).join(', ') : '선생님들이 이름으로 로그인할 수 있습니다');
+      toast('info', '신규 ' + r.added.length + '명 · 변경 ' + (r.updated.length + r.restored.length) + '명 · 제외 ' + r.excluded.length + '명', r.skipped.length ? '건너뜀 ' + r.skipped.length + '명: ' + r.skipped.slice(0, 3).join(', ') : '선생님들은 이름과 처음 비밀번호 1234로 로그인합니다');
       resetUpload();
     }).catch(function () { busy(btn, false); });
   }

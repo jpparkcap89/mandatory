@@ -7,8 +7,8 @@
 <meta name="description" content="교원 법정의무연수 이수 여부를 선생님이 직접 표시하고 담당자가 한눈에 확인하는 도구">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="assets/lucian.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/lucian.css?v=20261031b">
+<link rel="stylesheet" href="assets/style.css?v=20261031b">
 </head>
 <body>
 <div class="blob b1" aria-hidden="true"></div>
@@ -26,7 +26,6 @@
 </header>
 
 <main class="wrap">
-  <div class="demo-banner" id="demoBanner" hidden>🧪 <b>데모 모드</b>입니다. 서버 주소(config.js)가 비어 있어 데이터가 이 브라우저에만 저장됩니다. 담당자 비밀번호 <code>demo1234</code>, 선생님 비밀번호 <code>1234</code> (예: 박종필·심재희)</div>
 
   <section class="hero">
     <span class="eyebrow" id="eyebrow">✨ 법정의무연수 이수 관리</span>
@@ -51,10 +50,10 @@
       <div class="step" id="tStepLogin">
         <p class="sec-eye">TEACHER LOGIN</p>
         <h2>🙋 선생님 로그인</h2>
-        <p class="muted">담당자가 등록한 교원 명단의 이름으로 들어옵니다. <strong>처음이시면 쓰실 비밀번호를 입력</strong>하세요. 그 비밀번호로 정해집니다.</p>
+        <p class="muted">담당자가 등록한 교원 명단의 이름으로 들어옵니다. <strong>처음 비밀번호는 1234</strong>이고, 첫 로그인 때 본인 비밀번호로 바꿉니다.</p>
         <form id="tLoginForm" class="stack-form" autocomplete="off">
           <label class="field"><span>이름</span><input id="tName" type="text" maxlength="20" required placeholder="예: 홍길동" autocomplete="name"></label>
-          <label class="field"><span>비밀번호</span><input id="tPw" type="password" maxlength="30" minlength="4" required placeholder="4자 이상" autocomplete="current-password"></label>
+          <label class="field"><span>비밀번호</span><input id="tPw" type="password" maxlength="30" minlength="4" required placeholder="처음이시면 1234" autocomplete="current-password"></label>
           <ul class="cand" id="tCandidates" hidden></ul>
           <p class="form-msg" id="tMsg" role="alert"></p>
           <button class="btn primary block" type="submit" id="tLoginBtn">로그인</button>
@@ -65,9 +64,10 @@
       <div class="step" id="tStepSet" hidden>
         <p class="sec-eye">FIRST LOGIN</p>
         <h2>🔐 비밀번호를 정해 주세요</h2>
-        <p class="muted"><strong id="tSetName"></strong> 선생님, 처음 오셨네요. 방금 입력한 비밀번호를 한 번 더 입력하면 그대로 정해집니다.</p>
+        <p class="muted"><strong id="tSetName"></strong> 선생님, 처음 오셨네요. 다른 사람이 들어오지 못하도록 <strong>1234 대신 쓸 본인 비밀번호</strong>를 정해 주세요.</p>
         <form id="tSetForm" class="stack-form" autocomplete="off">
-          <label class="field"><span>비밀번호 확인</span><input id="tPw2" type="password" maxlength="30" required autocomplete="new-password"></label>
+          <label class="field"><span>새 비밀번호 <small>(4자 이상, 1234 제외)</small></span><input id="tPwNew" type="password" maxlength="30" minlength="4" required autocomplete="new-password"></label>
+          <label class="field"><span>새 비밀번호 확인</span><input id="tPw2" type="password" maxlength="30" required autocomplete="new-password"></label>
           <p class="form-msg" id="tSetMsg" role="alert"></p>
           <div class="pv-act"><button class="btn ghost" type="button" data-back>처음으로</button><button class="btn primary" type="submit">비밀번호 정하고 시작</button></div>
         </form>
@@ -87,7 +87,7 @@
           <p class="form-msg" id="tReqMsg" role="alert"></p>
           <div class="pv-act"><button class="btn ghost" type="button" data-back>이름 다시 입력</button><button class="btn primary" type="submit">추가 요청 보내기</button></div>
         </form>
-        <div class="done-box" id="tReqDone" hidden>✅ 요청을 보냈습니다. 담당자가 명단에 추가하면 같은 이름으로 로그인할 수 있습니다.</div>
+        <div class="done-box" id="tReqDone" hidden>✅ 요청을 보냈습니다. 담당자가 명단에 추가하면 같은 이름과 처음 비밀번호 1234로 로그인할 수 있습니다.</div>
       </div>
     </div>
 
@@ -193,7 +193,7 @@
             <div class="head-act">
               <input id="tSearch" type="search" placeholder="이름·부서 검색" aria-label="이름이나 부서 검색">
               <select id="tFilter" aria-label="상태 필터">
-                <option value="all">전체</option><option value="todo">미이수 있음</option><option value="done">모두 완료</option><option value="nopin">비밀번호 미설정</option><option value="out">집계 제외</option>
+                <option value="all">전체</option><option value="todo">미이수 있음</option><option value="done">모두 완료</option><option value="nopin">초기 비밀번호(1234)</option><option value="out">집계 제외</option>
               </select>
             </div>
           </div>
@@ -207,7 +207,7 @@
         <div class="card" id="reqCard" hidden>
           <p class="sec-eye">REQUESTS</p>
           <h3>📮 명단 추가 요청</h3>
-          <p class="muted sm">로그인하려다 명단에 없던 선생님이 보낸 요청입니다. 승인하면 바로 명단에 추가되고, 그 이름으로 로그인할 수 있습니다.</p>
+          <p class="muted sm">로그인하려다 명단에 없던 선생님이 보낸 요청입니다. 승인하면 바로 명단에 추가되고, 이름과 처음 비밀번호 1234로 로그인할 수 있습니다.</p>
           <ul class="req-list" id="reqList"></ul>
         </div>
         <div class="grid-2">
@@ -289,10 +289,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
-<script src="assets/config.js"></script>
-<script src="assets/seed.js"></script>
-<script src="assets/api.js"></script>
-<script src="assets/ui.js"></script>
-<script src="assets/app.js"></script>
+<script src="assets/config.js?v=20261031b"></script>
+<script src="assets/seed.js?v=20261031b"></script>
+<script src="assets/api.js?v=20261031b"></script>
+<script src="assets/ui.js?v=20261031b"></script>
+<script src="assets/app.js?v=20261031b"></script>
 </body>
 </html>
