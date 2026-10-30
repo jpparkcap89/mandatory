@@ -5,7 +5,7 @@
  * 처음 한 번: 편집기에서 setup 함수를 실행하세요.
  *   - 시트(설정·교원명단·연수목록·이수기록·변경기록)를 만들고
  *   - 연수 목록 기본값을 채우고
- *   - 담당자 비밀번호를 만들어 실행 로그에 보여 줍니다.
+ *   - 담당자 처음 비밀번호를 1234로 정합니다(담당자 화면 ⚙️ 설정에서 바꾸세요).
  * 그다음 [배포 → 새 배포 → 웹 앱] (실행: 나, 액세스: 모든 사용자)로 배포하고
  * 나온 /exec 주소를 프론트엔드 assets/config.js 의 API_URL 에 넣습니다.
  */
@@ -257,7 +257,7 @@ var SEED = [
 ];
 
 var TOKEN_TTL = 6 * 60 * 60; // 6시간
-var DEFAULT_PW = '1234';   // 선생님 처음 비밀번호 (초기화하면 다시 이 값)
+var DEFAULT_PW = '1234';   // 선생님·담당자 처음 비밀번호 (바꾸도록 안내)
 var MAX_FAIL = 5;            // 비밀번호 연속 실패 허용 횟수
 var LOCK_SEC = 10 * 60;      // 잠금 시간
 
@@ -294,11 +294,11 @@ function setup() {
 
   var props = PropertiesService.getScriptProperties();
   if (!props.getProperty('SALT')) props.setProperty('SALT', Utilities.getUuid());
-  if (!props.getProperty('ADMIN_PASSWORD')) props.setProperty('ADMIN_PASSWORD', Utilities.getUuid().slice(0, 8));
+  if (!props.getProperty('ADMIN_PASSWORD')) props.setProperty('ADMIN_PASSWORD', DEFAULT_PW);
   var sheet1 = ss.getSheetByName('Sheet1') || ss.getSheetByName('시트1');
   if (sheet1 && sheet1.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(sheet1);
   Logger.log('설치 완료. 담당자 비밀번호: ' + props.getProperty('ADMIN_PASSWORD'));
-  Logger.log('비밀번호를 바꾸려면 [프로젝트 설정 → 스크립트 속성]에서 ADMIN_PASSWORD 값을 고치세요.');
+  Logger.log('처음 비밀번호(1234)는 담당자 화면의 ⚙️ 설정에서 꼭 바꿔 주세요.');
 }
 
 /* ───────────── 웹 앱 진입점 ───────────── */
@@ -404,13 +404,14 @@ var ROUTES = {
     checkLock_('admin');
     if (!pw || String(b.password || '') !== pw) fail_('admin', '비밀번호가 맞지 않습니다.');
     CacheService.getScriptCache().remove('fail_admin');
-    return { token: issue_({ role: 'admin' }) };
+    return { token: issue_({ role: 'admin' }), defaultPw: pw === DEFAULT_PW };
   },
   adminDashboard: function (b) {
     auth_(b.token, 'admin');
     var y = year_();
     return {
-      year: y, school: setting_('학교명'),
+      year: y, school: setting_('학교명'), notice: setting_('안내문'),
+      defaultPw: PropertiesService.getScriptProperties().getProperty('ADMIN_PASSWORD') === DEFAULT_PW,
       teachers: teachers_().map(pub_),
       trainings: trainings_(false),
       records: records_().filter(function (r) { return r.year === y; }).map(pubRec_),
@@ -473,6 +474,75 @@ var ROUTES = {
         }
       }
       throw new Error('연수 항목을 찾을 수 없습니다.');
+    });
+  },
+  // 연수 항목 추가(id 없음) 또는 수정(id 있음)
+  saveTraining: function (b) {
+    auth_(b.token, 'admin');
+    var f = {
+      name: clean_(b.name).slice(0, 80), short: clean_(b.short).slice(0, 30), cycle: clean_(b.cycle).slice(0, 60),
+      detail: String(b.detail == null ? '' : b.detail).trim().slice(0, 500), url: clean_(b.url).slice(0, 500)
+    };
+    if (!f.name) throw new Error('교육명을 입력해 주세요.');
+    if (!f.cycle) throw new Error('주기·시간을 입력해 주세요. 예: 매년 1회');
+    if (f.url && !/^https?:\/\/\S+$/.test(f.url)) throw new Error('수강 링크는 http:// 또는 https:// 로 시작해야 합니다.');
+    return withLock_(function () {
+      var sh = sheet_('trainings'), vals = sh.getDataRange().getValues();
+      var col = function (k) { return HEAD.trainings.indexOf(k) + 1; };
+      for (var i = 1; i < vals.length; i++) {
+        if (String(vals[i][1]) === f.name && String(vals[i][0]) !== String(b.id || '')) throw new Error('같은 이름의 연수가 이미 있습니다.');
+      }
+      if (b.id) {
+        for (var j = 1; j < vals.length; j++) {
+          if (String(vals[j][0]) === b.id) {
+            sh.getRange(j + 1, col('교육명'), 1, 5).setValues([[f.name, f.short || f.name, f.cycle, f.detail, f.url]]);
+            log_('담당자', '연수 수정', f.name);
+            return { id: b.id };
+          }
+        }
+        throw new Error('연수 항목을 찾을 수 없습니다.');
+      }
+      var maxOrder = vals.slice(1).reduce(function (m, v) { return Math.max(m, Number(v[8]) || 0); }, 0);
+      var id = 'CUSTOM_' + new Date().getTime().toString(36).toUpperCase();
+      sh.appendRow([id, f.name, f.short || f.name, f.cycle, f.detail, f.url, '대상', 'Y', maxOrder + 1]);
+      log_('담당자', '연수 추가', f.name);
+      return { id: id };
+    });
+  },
+  // 직접 추가한 연수만, 이수 기록이 없을 때 삭제
+  deleteTraining: function (b) {
+    auth_(b.token, 'admin');
+    if (String(b.id || '').indexOf('CUSTOM_') !== 0) throw new Error('기본 연수는 삭제할 수 없습니다. 숨김으로 바꿔 주세요.');
+    return withLock_(function () {
+      if (records_().some(function (r) { return r.trainingId === b.id; })) throw new Error('이수 기록이 있는 연수는 삭제할 수 없습니다. 숨김으로 바꿔 주세요.');
+      var sh = sheet_('trainings'), vals = sh.getDataRange().getValues();
+      for (var i = 1; i < vals.length; i++) {
+        if (String(vals[i][0]) === b.id) { sh.deleteRow(i + 1); log_('담당자', '연수 삭제', vals[i][1]); return { id: b.id }; }
+      }
+      throw new Error('연수 항목을 찾을 수 없습니다.');
+    });
+  },
+  // 학교명·학년도·안내문·담당자 비밀번호
+  saveSettings: function (b) {
+    auth_(b.token, 'admin');
+    var school = clean_(b.school).slice(0, 40), year = String(b.year || '').trim(), notice = String(b.notice == null ? '' : b.notice).trim().slice(0, 200);
+    if (!school) throw new Error('학교명을 입력해 주세요.');
+    if (!/^\d{4}$/.test(year) || Number(year) < 2020 || Number(year) > 2100) throw new Error('학년도는 2026처럼 네 자리 숫자로 입력해 주세요.');
+    var props = PropertiesService.getScriptProperties();
+    var changePw = !!(b.newPassword || b.currentPassword);
+    if (changePw) {
+      checkLock_('admin');
+      if (String(b.currentPassword || '') !== props.getProperty('ADMIN_PASSWORD')) fail_('admin', '현재 비밀번호가 맞지 않습니다.');
+      var np = String(b.newPassword || '');
+      if (np.length < 4 || np.length > 40) throw new Error('새 비밀번호는 4~40자로 정해 주세요.');
+    }
+    return withLock_(function () {
+      setSetting_('학교명', school, '화면 위쪽에 표시됩니다');
+      setSetting_('연도', year, '이수기록을 나누는 학년도 (3월~이듬해 2월)');
+      setSetting_('안내문', notice, '선생님 화면 위쪽 안내');
+      if (changePw) { props.setProperty('ADMIN_PASSWORD', String(b.newPassword)); CacheService.getScriptCache().remove('fail_admin'); }
+      log_('담당자', '설정 변경', school + ' · ' + year + '학년도' + (changePw ? ' · 비밀번호 변경' : ''));
+      return { school: school, year: year, notice: notice, passwordChanged: changePw };
     });
   }
 };
@@ -669,6 +739,14 @@ function setting_(key) {
   var vals = sheet_('settings').getDataRange().getValues();
   for (var i = 1; i < vals.length; i++) if (String(vals[i][0]) === key) return String(vals[i][1]);
   return '';
+}
+
+function setSetting_(key, value, desc) {
+  var sh = sheet_('settings'), vals = sh.getDataRange().getValues();
+  for (var i = 1; i < vals.length; i++) {
+    if (String(vals[i][0]) === key) { sh.getRange(i + 1, 2).setValue(value); return; }
+  }
+  sh.appendRow([key, value, desc || '']);
 }
 
 function year_() { return setting_('연도') || String(schoolYear_()); }

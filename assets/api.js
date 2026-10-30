@@ -122,10 +122,11 @@
       r.done = !!b.done; r.date = b.done ? (b.date || '') : ''; r.certNo = b.done ? clean(b.certNo) : ''; r.memo = clean(b.memo); r.at = new Date().toISOString();
       save(); return r;
     },
-    adminLogin: function (b) { if (b.password !== 'demo1234') throw toError('비밀번호가 맞지 않습니다. (데모: demo1234)'); return { token: tok({ role: 'admin' }) }; },
+    adminLogin: function (b) { if (b.password !== (load().adminPw || '1234')) throw toError('비밀번호가 맞지 않습니다.'); return { token: tok({ role: 'admin' }), defaultPw: (load().adminPw || '1234') === '1234' }; },
     adminDashboard: function (b) {
       auth(b.token, 'admin'); var s = load();
-      return { year: '2026', school: '데모 초등학교', teachers: s.teachers.map(pub), trainings: s.trainings, records: s.records, requests: s.requests };
+      var st = s.settings || { school: '데모 초등학교', year: '2026', notice: '' };
+      return { year: st.year, school: st.school, notice: st.notice, defaultPw: (s.adminPw || '1234') === '1234', teachers: s.teachers.map(pub), trainings: s.trainings, records: s.records, requests: s.requests };
     },
     importRoster: function (b) { auth(b.token, 'admin'); return importRows((b.rows || []).map(function (r) { return { id: clean(r.id).toUpperCase(), name: clean(r.name), role: clean(r.role), dept: clean(r.dept) }; }).filter(function (r) { return r.name; }), !!b.excludeMissing); },
     resolveRequest: function (b) {
@@ -136,6 +137,26 @@
     },
     setTeacherStatus: function (b) { auth(b.token, 'admin'); byId(b.id).included = !!b.included; save(); return { id: b.id, included: !!b.included }; },
     resetPassword: function (b) { auth(b.token, 'admin'); byId(b.id).pw = ''; save(); return { id: b.id }; },
+    saveTraining: function (b) {
+      auth(b.token, 'admin'); var s = load();
+      if (!clean(b.name)) throw toError('교육명을 입력해 주세요.');
+      if (b.id) { var t = s.trainings.filter(function (x) { return x.id === b.id; })[0]; Object.assign(t, { name: clean(b.name), short: clean(b.short) || clean(b.name), cycle: clean(b.cycle), detail: String(b.detail || ''), url: clean(b.url) }); save(); return { id: t.id }; }
+      var id = 'CUSTOM_' + Date.now().toString(36).toUpperCase();
+      s.trainings.push({ id: id, name: clean(b.name), short: clean(b.short) || clean(b.name), cycle: clean(b.cycle), detail: String(b.detail || ''), url: clean(b.url), target: '대상', active: true, order: s.trainings.length + 1 });
+      save(); return { id: id };
+    },
+    deleteTraining: function (b) {
+      auth(b.token, 'admin'); var s = load();
+      if (s.records.some(function (r) { return r.trainingId === b.id; })) throw toError('이수 기록이 있는 연수는 삭제할 수 없습니다.');
+      s.trainings = s.trainings.filter(function (x) { return x.id !== b.id; }); save(); return { id: b.id };
+    },
+    saveSettings: function (b) {
+      auth(b.token, 'admin'); var s = load();
+      if (b.newPassword && b.currentPassword !== (s.adminPw || '1234')) throw toError('현재 비밀번호가 맞지 않습니다.');
+      s.settings = { school: clean(b.school), year: String(b.year), notice: String(b.notice || '') };
+      if (b.newPassword) s.adminPw = b.newPassword;
+      save(); return { school: s.settings.school, year: s.settings.year, notice: s.settings.notice, passwordChanged: !!b.newPassword };
+    },
     setTrainingActive: function (b) { auth(b.token, 'admin'); var t = load().trainings.filter(function (x) { return x.id === b.id; })[0]; t.active = !!b.active; save(); return { id: b.id, active: t.active }; }
   };
 

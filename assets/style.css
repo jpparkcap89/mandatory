@@ -238,8 +238,34 @@ li:not(.is-done) .rs-tx{color:#a35f00}
 .switch input:focus-visible+span{outline:2px solid var(--primary);outline-offset:2px}
 .switch em{font-style:normal;font-size:13px;font-weight:650;color:var(--muted);width:28px}
 
+/* 담당자 상단 바 */
+.admin-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:10px 12px 10px 18px;border-radius:var(--r-md);background:rgba(36,50,74,.86);color:#fff;box-shadow:var(--shadow-sm)}
+.admin-who{display:flex;align-items:center;gap:10px;min-width:0}
+.admin-who b{font-size:15px}
+.admin-who small{font-size:13.5px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-dot{width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.22)}
+.admin-act{display:flex;gap:8px}
+.admin-bar .btn.ghost{background:rgba(255,255,255,.12);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.admin-bar .btn.ghost:hover{background:rgba(255,255,255,.22)}
+.pw-warn{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:12px 14px 12px 18px;border-radius:var(--r-md);background:rgba(255,207,112,.35);border:1px solid rgba(245,158,11,.4);font-size:14.5px}
+/* 연수 항목 편집 */
+.trlist .tr-tx{flex:1;min-width:0}
+.pen{flex:none;width:36px;height:36px;border:0;border-radius:12px;background:rgba(59,99,246,.08);cursor:pointer;font-size:15px;transition:background .2s,transform .2s}
+.pen:hover{background:rgba(59,99,246,.18);transform:translateY(-1px)}
+.btn.danger{color:var(--danger);box-shadow:inset 0 0 0 1px rgba(229,72,107,.3)}
+.form-sheet{width:min(600px,calc(100% - 24px))}
+.form-sheet .stack-form{margin:14px 0 0}
+.form-sheet textarea{padding:12px 16px;border-radius:var(--r-sm);border:1px solid rgba(36,50,74,.14);background:rgba(255,255,255,.92);font-size:15px;line-height:1.6;resize:vertical;min-height:84px}
+.form-sheet textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(59,99,246,.12)}
+.form-sheet .pv-act{align-items:center}
+.form-sheet .pv-act .grow{flex:1}
+.hint{margin:-6px 0 0;font-size:13px;color:var(--muted)}
+.pw-box{margin:0;padding:14px 16px 16px;border:1px solid var(--hairline);border-radius:var(--r-md);background:#f8faff;display:flex;flex-direction:column;gap:12px}
+.pw-box legend{padding:0 6px;font-size:14px;font-weight:700}
+.pw-box legend small{font-weight:500;color:var(--muted)}
+
 /* 대화상자 */
-.sheet{border:0;padding:0;border-radius:var(--r-lg);width:min(520px,calc(100% - 24px));max-height:min(80vh,640px);background:#fff;color:var(--ink);box-shadow:var(--shadow)}
+.sheet{border:0;padding:0;border-radius:var(--r-lg);width:min(520px,calc(100% - 24px));max-height:min(90vh,760px);background:#fff;color:var(--ink);box-shadow:var(--shadow)}
 .sheet::backdrop{background:rgba(36,50,74,.35);backdrop-filter:blur(3px)}
 .sheet-in{padding:24px}
 .sheet-head{display:flex;justify-content:space-between;align-items:center;gap:12px}

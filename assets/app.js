@@ -306,6 +306,7 @@
       busy(btn, false);
       S.aToken = d.token; store.set('zo_a', d.token); $('#aPw').value = '';
       loadAdmin();
+      if (d.defaultPw) toast('info', '처음 비밀번호(1234)로 로그인했습니다', '⚙️ 설정에서 비밀번호를 바꿔 주세요');
     }).catch(function (err) { busy(btn, false); toast('err', '로그인하지 못했습니다', err.message); });
   });
 
@@ -336,6 +337,8 @@
   function renderAdmin() {
     var M = model();
     $('#schoolName').textContent = S.a.school + ' · ' + S.a.year + '학년도';
+    $('#aWho').textContent = S.a.school + ' · ' + S.a.year + '학년도';
+    $('#pwWarn').hidden = !S.a.defaultPw;
     var incPer = M.per.filter(function (p) { return p.t.included; });
     var need = M.inc.length * M.tr.length;
     var got = incPer.reduce(function (s, p) { return s + p.n; }, 0);
@@ -468,8 +471,12 @@
 
   /* 연수 항목 */
   function renderTrainings() {
+    var used = {};
+    (S.a.records || []).forEach(function (r) { used[r.trainingId] = 1; });
     $('#aTrainings').innerHTML = S.a.trainings.map(function (t) {
-      return '<li class="' + (t.active ? '' : 'off') + '"><div><b>' + esc(t.name) + '</b><small>' + esc(t.cycle) + (t.target && t.target !== '대상' ? ' · 기본 ' + esc(t.target) : '') + '</small></div>' +
+      var custom = t.id.indexOf('CUSTOM_') === 0;
+      return '<li class="' + (t.active ? '' : 'off') + '"><div class="tr-tx"><b>' + esc(t.name) + (custom ? ' <em class="tag info">추가</em>' : '') + '</b><small>' + esc(t.cycle) + (t.target && t.target !== '대상' ? ' · 기본 ' + esc(t.target) : '') + '</small></div>' +
+        '<button type="button" class="pen" data-edit="' + esc(t.id) + '" aria-label="' + esc(t.name) + ' 수정" title="수정">✏️</button>' +
         '<label class="switch"><input type="checkbox" data-id="' + esc(t.id) + '"' + (t.active ? ' checked' : '') + '><span aria-hidden="true"></span><em>' + (t.active ? '사용' : '숨김') + '</em></label></li>';
     }).join('');
     $$('#aTrainings input').forEach(function (inp) {
@@ -477,7 +484,91 @@
         adminAct('setTrainingActive', { id: inp.getAttribute('data-id'), active: inp.checked }, inp.checked ? '연수를 다시 사용합니다' : '연수를 숨겼습니다', '선생님 화면과 집계에 바로 반영됩니다').catch(function () { inp.checked = !inp.checked; });
       });
     });
+    $$('#aTrainings [data-edit]').forEach(function (b) {
+      b.addEventListener('click', function () { openTraining(S.a.trainings.filter(function (t) { return t.id === b.getAttribute('data-edit'); })[0], used); });
+    });
   }
+
+  /* 연수 추가·수정 모달 */
+  var trEditing = null;
+  function openModal(dlg) { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', ''); }
+  function openTraining(t, used) {
+    trEditing = t || null;
+    used = used || {};
+    $('#trDlgTitle').textContent = t ? '✏️ 연수 수정' : '➕ 연수 추가';
+    $('#trName').value = t ? t.name : ''; $('#trShort').value = t && t.short !== t.name ? t.short : '';
+    $('#trCycle').value = t ? t.cycle : ''; $('#trDetail').value = t ? t.detail : ''; $('#trUrl').value = t ? t.url : '';
+    $('#trMsg').textContent = '';
+    $('#trDelete').hidden = !(t && t.id.indexOf('CUSTOM_') === 0 && !used[t.id]);
+    openModal($('#trDlg'));
+    $('#trName').focus();
+  }
+  $('#trAddBtn').addEventListener('click', function () { openTraining(null); });
+  $('#trForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var f = { name: $('#trName').value.trim(), short: $('#trShort').value.trim(), cycle: $('#trCycle').value.trim(), detail: $('#trDetail').value.trim(), url: $('#trUrl').value.trim() };
+    var msg = $('#trMsg');
+    if (!f.name) { msg.textContent = '교육명을 입력해 주세요.'; $('#trName').focus(); return; }
+    if (!f.cycle) { msg.textContent = '주기·시간을 입력해 주세요. 예: 매년 1회'; $('#trCycle').focus(); return; }
+    if (f.url && !/^https?:\/\/\S+$/.test(f.url)) { msg.textContent = '수강 링크는 http:// 또는 https:// 로 시작해야 합니다.'; $('#trUrl').focus(); return; }
+    var btn = $('#trSave'); busy(btn, true, '저장 중…');
+    var editing = trEditing;
+    API.call('saveTraining', Object.assign({ token: S.aToken, id: editing ? editing.id : '' }, f)).then(function () {
+      busy(btn, false); $('#trDlg').close();
+      toast('ok', editing ? '연수를 수정했습니다' : '연수를 추가했습니다', f.name);
+      loadAdmin();
+    }).catch(function (err) { busy(btn, false); if (!authFail(err, 'admin')) msg.textContent = err.message; });
+  });
+  $('#trDelete').addEventListener('click', function () {
+    var t = trEditing; if (!t) return;
+    $('#trDlg').close();
+    ask('“' + t.name + '” 연수를 삭제할까요? 되돌릴 수 없습니다.', '삭제').then(function (ok) {
+      if (ok) adminAct('deleteTraining', { id: t.id }, '연수를 삭제했습니다', t.name).catch(function () { });
+    });
+  });
+
+  /* 전체 설정 모달 */
+  $('#pwWarnBtn').addEventListener('click', function () { $('#aSettingsBtn').click(); $('#setPwCur').focus(); });
+  $('#aSettingsBtn').addEventListener('click', function () {
+    $('#setSchool').value = S.a.school || ''; $('#setYear').value = S.a.year || ''; $('#setNotice').value = S.a.notice || '';
+    $('#setPwCur').value = ''; $('#setPwNew').value = ''; $('#setPwNew2').value = ''; $('#setMsg').textContent = '';
+    openModal($('#setDlg'));
+    $('#setSchool').focus();
+  });
+  $('#setForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var msg = $('#setMsg');
+    var f = { school: $('#setSchool').value.trim(), year: String($('#setYear').value).trim(), notice: $('#setNotice').value.trim() };
+    var cur = $('#setPwCur').value, np = $('#setPwNew').value, np2 = $('#setPwNew2').value;
+    if (!f.school) { msg.textContent = '학교명을 입력해 주세요.'; return; }
+    if (!/^\d{4}$/.test(f.year) || +f.year < 2020 || +f.year > 2100) { msg.textContent = '학년도는 2026처럼 네 자리 숫자로 입력해 주세요.'; return; }
+    if (cur || np || np2) {
+      if (!cur) { msg.textContent = '현재 비밀번호를 입력해 주세요.'; return; }
+      if (np.length < 4) { msg.textContent = '새 비밀번호는 4자 이상입니다.'; return; }
+      if (np !== np2) { msg.textContent = '새 비밀번호 확인이 다릅니다.'; return; }
+      f.currentPassword = cur; f.newPassword = np;
+    }
+    var yearChanged = f.year !== String(S.a.year);
+    var go = function () {
+      var btn = $('#setSave'); busy(btn, true, '저장 중…');
+      API.call('saveSettings', Object.assign({ token: S.aToken }, f)).then(function (r) {
+        busy(btn, false); $('#setDlg').close();
+        toast('ok', '설정을 저장했습니다', r.school + ' · ' + r.year + '학년도' + (r.passwordChanged ? ' · 비밀번호 변경됨' : ''));
+        loadAdmin();
+      }).catch(function (err) { busy(btn, false); if (!authFail(err, 'admin')) msg.textContent = err.message; });
+    };
+    if (!yearChanged) return go();
+    ask('학년도를 ' + S.a.year + ' → ' + f.year + '(으)로 바꿀까요? 화면은 ' + f.year + '학년도 이수 기록으로 새로 집계됩니다.', '바꾸기').then(function (ok) { if (ok) go(); });
+  });
+  $$('#trDlg [data-close], #setDlg [data-close]').forEach(function (b) { b.addEventListener('click', function () { b.closest('dialog').close(); }); });
+
+  /* 담당자 로그아웃 */
+  $('#aLogoutBtn').addEventListener('click', function () {
+    S.aToken = null; S.a = null; store.set('zo_a', null);
+    $('#aDash').hidden = true; $('#aLogin').hidden = false;
+    syncLogout();
+    toast('info', '담당자 로그아웃했습니다');
+  });
 
   /* 추가 요청 */
   function renderRequests() {

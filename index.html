@@ -7,8 +7,8 @@
 <meta name="description" content="교원 법정의무연수 이수 여부를 선생님이 직접 표시하고 담당자가 한눈에 확인하는 도구">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="assets/lucian.css?v=20261031b">
-<link rel="stylesheet" href="assets/style.css?v=20261031b">
+<link rel="stylesheet" href="assets/lucian.css?v=20261031d">
+<link rel="stylesheet" href="assets/style.css?v=20261031d">
 </head>
 <body>
 <div class="blob b1" aria-hidden="true"></div>
@@ -148,7 +148,7 @@
     <div class="card login" id="aLogin">
       <p class="sec-eye">ADMIN</p>
       <h2>🗂️ 담당자 로그인</h2>
-      <p class="muted">설치할 때 받은 담당자 비밀번호를 입력해 주세요.</p>
+      <p class="muted">담당자 비밀번호를 입력해 주세요. <strong>처음 비밀번호는 1234</strong>이며, 로그인한 뒤 ⚙️ 설정에서 꼭 바꿔 주세요.</p>
       <form id="aLoginForm" class="row-form">
         <label class="field grow"><span>비밀번호</span><input id="aPw" type="password" required autocomplete="current-password"></label>
         <button class="btn primary" type="submit">로그인</button>
@@ -156,6 +156,17 @@
     </div>
 
     <div id="aDash" hidden>
+      <div class="admin-bar">
+        <div class="admin-who"><span class="admin-dot" aria-hidden="true"></span><b>담당자 모드</b><small id="aWho"></small></div>
+        <div class="admin-act">
+          <button class="btn ghost sm" type="button" id="aSettingsBtn">⚙️ 설정</button>
+          <button class="btn ghost sm" type="button" id="aLogoutBtn">🚪 로그아웃</button>
+        </div>
+      </div>
+      <div class="pw-warn" id="pwWarn" role="alert" hidden>
+        <span>⚠️ 담당자 비밀번호가 <strong>처음 값(1234)</strong> 그대로입니다. 누구나 담당자 화면에 들어올 수 있으니 바꿔 주세요.</span>
+        <button class="btn primary sm" type="button" id="pwWarnBtn">지금 바꾸기</button>
+      </div>
       <nav class="subnav" aria-label="담당자 메뉴">
         <button type="button" class="on" data-p="overview">📊 현황</button>
         <button type="button" data-p="teachers">👩‍🏫 교원별</button>
@@ -253,9 +264,11 @@
       <!-- 연수 항목 -->
       <div class="pane" data-pane="trainings" hidden>
         <div class="card">
-          <p class="sec-eye">TRAININGS</p>
-          <h3>📚 연수 항목 관리</h3>
-          <p class="muted sm">2026 경기 교원 법정의무연수 기준으로 기본 항목이 들어 있습니다. 우리 학교 대상이 아닌 항목은 <strong>숨김</strong>으로 바꾸면 선생님 화면과 집계에서 빠집니다. 이름·링크 수정은 스프레드시트의 <code>연수목록</code> 시트에서 합니다.</p>
+          <div class="card-head">
+            <div><p class="sec-eye">TRAININGS</p><h3>📚 연수 항목 관리</h3></div>
+            <div class="head-act"><button class="btn primary sm" type="button" id="trAddBtn">➕ 연수 추가</button></div>
+          </div>
+          <p class="muted sm">2026 경기 교원 법정의무연수 기준으로 기본 항목이 들어 있습니다. <strong>✏️ 연필</strong>을 누르면 이름·주기·링크를 고칠 수 있고, 빠진 연수는 <strong>연수 추가</strong>로 넣습니다. 우리 학교 대상이 아닌 항목은 <strong>숨김</strong>으로 바꾸면 선생님 화면과 집계에서 빠집니다.</p>
           <ul class="trlist" id="aTrainings"></ul>
         </div>
       </div>
@@ -270,6 +283,47 @@
     <ul class="miss-list" id="missList"></ul>
     <div class="pv-act"><button class="btn primary" type="button" id="missCopy">📋 이름 복사</button></div>
   </div>
+</dialog>
+
+<dialog class="sheet form-sheet" id="trDlg" aria-labelledby="trDlgTitle">
+  <form class="sheet-in" id="trForm" novalidate>
+    <div class="sheet-head"><h3 id="trDlgTitle">연수 추가</h3><button class="icon-x" type="button" data-close aria-label="닫기">✕</button></div>
+    <div class="stack-form">
+      <label class="field"><span>교육명 <b class="req">*</b></span><input id="trName" type="text" maxlength="80" required placeholder="예: 생명존중 교육"></label>
+      <div class="grid-2 tight">
+        <label class="field"><span>짧은 이름 <small>(현황 막대에 표시)</small></span><input id="trShort" type="text" maxlength="30" placeholder="비우면 교육명"></label>
+        <label class="field"><span>주기·시간 <b class="req">*</b></span><input id="trCycle" type="text" maxlength="60" required placeholder="예: 매년 1회 · 1시간 이상"></label>
+      </div>
+      <label class="field"><span>세부 조건 <small>(선생님 화면 ‘기준·수강 안내’)</small></span><textarea id="trDetail" rows="3" maxlength="500" placeholder="인정 조건, 근거 등을 적어 주세요."></textarea></label>
+      <label class="field"><span>수강 링크</span><input id="trUrl" type="url" maxlength="500" placeholder="https://"></label>
+      <p class="form-msg" id="trMsg" role="alert"></p>
+    </div>
+    <div class="pv-act"><button class="btn ghost danger" type="button" id="trDelete" hidden>삭제</button><span class="grow"></span><button class="btn ghost" type="button" data-close>취소</button><button class="btn primary" type="submit" id="trSave">저장</button></div>
+  </form>
+</dialog>
+
+<dialog class="sheet form-sheet" id="setDlg" aria-labelledby="setDlgTitle">
+  <form class="sheet-in" id="setForm" novalidate>
+    <div class="sheet-head"><h3 id="setDlgTitle">⚙️ 전체 설정</h3><button class="icon-x" type="button" data-close aria-label="닫기">✕</button></div>
+    <div class="stack-form">
+      <div class="grid-2 tight">
+        <label class="field"><span>학교명 <b class="req">*</b></span><input id="setSchool" type="text" maxlength="40" required></label>
+        <label class="field"><span>학년도 <b class="req">*</b></span><input id="setYear" type="number" min="2020" max="2100" step="1" required></label>
+      </div>
+      <p class="hint">학년도를 바꾸면 그 학년도의 이수 기록으로 새로 집계합니다. 이전 기록은 스프레드시트에 그대로 남습니다.</p>
+      <label class="field"><span>선생님 화면 안내문</span><input id="setNotice" type="text" maxlength="200" placeholder="예: 11월 30일까지 모두 이수해 주세요."></label>
+      <fieldset class="pw-box">
+        <legend>🔑 담당자 비밀번호 변경 <small>(바꿀 때만 입력)</small></legend>
+        <label class="field"><span>현재 비밀번호</span><input id="setPwCur" type="password" autocomplete="current-password"></label>
+        <div class="grid-2 tight">
+          <label class="field"><span>새 비밀번호</span><input id="setPwNew" type="password" minlength="4" maxlength="40" autocomplete="new-password"></label>
+          <label class="field"><span>새 비밀번호 확인</span><input id="setPwNew2" type="password" maxlength="40" autocomplete="new-password"></label>
+        </div>
+      </fieldset>
+      <p class="form-msg" id="setMsg" role="alert"></p>
+    </div>
+    <div class="pv-act"><button class="btn ghost" type="button" data-close>취소</button><button class="btn primary" type="submit" id="setSave">저장</button></div>
+  </form>
 </dialog>
 
 <dialog class="sheet ask" id="askDlg" aria-labelledby="askMsg">
@@ -289,10 +343,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
-<script src="assets/config.js?v=20261031b"></script>
-<script src="assets/seed.js?v=20261031b"></script>
-<script src="assets/api.js?v=20261031b"></script>
-<script src="assets/ui.js?v=20261031b"></script>
-<script src="assets/app.js?v=20261031b"></script>
+<script src="assets/config.js?v=20261031d"></script>
+<script src="assets/seed.js?v=20261031d"></script>
+<script src="assets/api.js?v=20261031d"></script>
+<script src="assets/ui.js?v=20261031d"></script>
+<script src="assets/app.js?v=20261031d"></script>
 </body>
 </html>
