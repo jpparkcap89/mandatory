@@ -578,7 +578,7 @@
     $('#reqBanner').hidden = !reqs.length; $('#reqBannerN').textContent = reqs.length;
     $('#reqList').innerHTML = reqs.map(function (r) {
       var dup = S.a.teachers.some(function (t) { return t.name === r.name; });
-      return '<li data-id="' + esc(r.id) + '"><div class="req-tx"><b>' + esc(r.name) + '</b><small>' + esc([r.dept, r.role].filter(Boolean).join(' · ') || '부서·신분 미입력') + (r.at ? ' · ' + esc(r.at.slice(0, 10)) : '') + '</small>' + (r.memo ? '<p>“' + esc(r.memo) + '”</p>' : '') + (dup ? '<p class="warn-tx">⚠️ 같은 이름이 이미 명단에 있습니다(집계 제외 상태일 수 있음). 승인하면 별도 교원으로 추가됩니다.</p>' : '') + '</div>' +
+      return '<li data-id="' + esc(r.id) + '"><div class="req-tx"><b>' + esc(r.name) + '</b><small>' + esc([r.dept, r.role].filter(Boolean).join(' · ') || '부서·직급 미입력') + (r.at ? ' · ' + esc(r.at.slice(0, 10)) : '') + '</small>' + (r.memo ? '<p>“' + esc(r.memo) + '”</p>' : '') + (dup ? '<p class="warn-tx">⚠️ 같은 이름이 이미 명단에 있습니다(집계 제외 상태일 수 있음). 승인하면 별도 교원으로 추가됩니다.</p>' : '') + '</div>' +
         '<div class="req-act"><button class="btn ghost sm" type="button" data-ok="0">거절</button><button class="btn primary sm" type="button" data-ok="1">명단에 추가</button></div></li>';
     }).join('');
     $$('#reqList li').forEach(function (li) {
@@ -603,7 +603,7 @@
   var parsed = null;
   var RE = {
     name: /^(이름|성명|성\s*명|교원명|교사명|직원명)$/,
-    role: /^(신분|직위|직급|구분|자격|직종)$/,
+    role: /^(직급|신분|직위|구분|자격|직종)$/,
     dept: /^(부서|소속|학년|담당\s*부서|업무\s*부서|학년\s*반|학년반)$/,
     id: /^(교사\s*ID|ID|교사번호|교원번호)$/i
   };
@@ -698,7 +698,7 @@
     $('#rEmpty').hidden = true; $('#rBody').hidden = false;
     renderPreview();
     if (window.matchMedia('(max-width:1024px)').matches) $('#rPreview').scrollIntoView({ behavior: UI.reducedMotion ? 'auto' : 'smooth', block: 'start' });
-    var colName = { name: '이름', role: '신분', dept: '부서', id: '교사ID' };
+    var colName = { name: '이름', role: '직급', dept: '부서', id: '교사ID' };
     return '“' + res.sheet + '” 시트 · ' + res.rows.length + '명 · ' + res.cols.map(function (k) { return colName[k]; }).join('·') + ' 열 인식';
   });
 
@@ -722,7 +722,7 @@
   $('#exportBtn').addEventListener('click', function () {
     if (!window.XLSX || !S.a) return;
     var M = model();
-    var head = ['교사ID', '이름', '신분', '부서', '집계', '완료', '대상'].concat(M.tr.map(function (t) { return t.short || t.name; }));
+    var head = ['교사ID', '이름', '직급', '부서', '집계', '완료', '대상'].concat(M.tr.map(function (t) { return t.short || t.name; }));
     var body = M.per.map(function (p) {
       return [p.t.id, p.t.name, p.t.role, p.t.dept, p.t.included ? '포함' : '제외', p.n, p.total].concat(M.tr.map(function (x) { var r = M.done[p.t.id] && M.done[p.t.id][x.id]; return r ? (r.date || '완료') : ''; }));
     });

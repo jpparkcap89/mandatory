@@ -7,8 +7,8 @@
 <meta name="description" content="교원 법정의무연수 이수 여부를 선생님이 직접 표시하고 담당자가 한눈에 확인하는 도구">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="assets/lucian.css?v=20261031d">
-<link rel="stylesheet" href="assets/style.css?v=20261031d">
+<link rel="stylesheet" href="assets/lucian.css?v=20261031e">
+<link rel="stylesheet" href="assets/style.css?v=20261031e">
 </head>
 <body>
 <div class="blob b1" aria-hidden="true"></div>
@@ -50,7 +50,7 @@
       <div class="step" id="tStepLogin">
         <p class="sec-eye">TEACHER LOGIN</p>
         <h2>🙋 선생님 로그인</h2>
-        <p class="muted">담당자가 등록한 교원 명단의 이름으로 들어옵니다. <strong>처음 비밀번호는 1234</strong>이고, 첫 로그인 때 본인 비밀번호로 바꿉니다.</p>
+        <p class="muted">담당자가 등록한 교원 명단의 이름으로 들어옵니다.<br><strong>처음 비밀번호는 1234</strong>이고, 첫 로그인 때 본인 비밀번호로 바꿉니다.</p>
         <form id="tLoginForm" class="stack-form" autocomplete="off">
           <label class="field"><span>이름</span><input id="tName" type="text" maxlength="20" required placeholder="예: 홍길동" autocomplete="name"></label>
           <label class="field"><span>비밀번호</span><input id="tPw" type="password" maxlength="30" minlength="4" required placeholder="처음이시면 1234" autocomplete="current-password"></label>
@@ -81,7 +81,7 @@
         <form id="tReqForm" class="stack-form" autocomplete="off">
           <div class="grid-2 tight">
             <label class="field"><span>부서·학년 <small>(선택)</small></span><input id="tReqDept" type="text" maxlength="30" placeholder="예: 3학년부"></label>
-            <label class="field"><span>신분 <small>(선택)</small></span><input id="tReqRole" type="text" maxlength="20" placeholder="예: 기간제"></label>
+            <label class="field"><span>직급 <small>(선택)</small></span><input id="tReqRole" type="text" maxlength="20" placeholder="예: 교사"></label>
           </div>
           <label class="field"><span>담당자에게 남길 말 <small>(선택)</small></span><input id="tReqMemo" type="text" maxlength="200" placeholder="예: 10월 신규 전입했습니다"></label>
           <p class="form-msg" id="tReqMsg" role="alert"></p>
@@ -225,7 +225,7 @@
           <div class="card">
             <p class="sec-eye">ROSTER</p>
             <h3>📤 교원 명단 업로드</h3>
-            <p class="muted sm">엑셀(.xlsx·.xls) 또는 CSV 파일을 올리세요. <strong>이름</strong>(또는 성명) 열은 꼭 필요하고, <strong>신분·부서·교사ID</strong> 열은 있으면 함께 반영합니다.</p>
+            <p class="muted sm">엑셀(.xlsx·.xls) 또는 CSV 파일을 올리세요. <strong>이름</strong>(또는 성명) 열은 꼭 필요하고, <strong>직급·부서·교사ID</strong> 열은 있으면 함께 반영합니다.</p>
             <!-- Lucian UX/UI Prompt #032 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#032 -->
             <div class="ux u032" id="dropBox">
               <button class="u032-zone" type="button">
@@ -246,7 +246,7 @@
             <div id="rBody" hidden>
               <div class="pv-stats" id="rStats"></div>
               <label class="check"><input type="checkbox" id="rExclude"> 파일에 없는 기존 교원은 <strong>집계 제외</strong>로 바꾸기 <small>(기록은 지우지 않습니다)</small></label>
-              <div class="pv-table-wrap"><table class="pv-table"><thead><tr><th>상태</th><th>이름</th><th>신분</th><th>부서</th></tr></thead><tbody id="rRows"></tbody></table></div>
+              <div class="pv-table-wrap"><table class="pv-table"><thead><tr><th>상태</th><th>이름</th><th>직급</th><th>부서</th></tr></thead><tbody id="rRows"></tbody></table></div>
               <div class="pv-act"><button class="btn ghost" type="button" id="rCancel">취소</button><button class="btn primary" type="button" id="rCommit">명단에 반영하기</button></div>
             </div>
           </div>
@@ -343,10 +343,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
-<script src="assets/config.js?v=20261031d"></script>
-<script src="assets/seed.js?v=20261031d"></script>
-<script src="assets/api.js?v=20261031d"></script>
-<script src="assets/ui.js?v=20261031d"></script>
-<script src="assets/app.js?v=20261031d"></script>
+<script src="assets/config.js?v=20261031e"></script>
+<script src="assets/seed.js?v=20261031e"></script>
+<script src="assets/api.js?v=20261031e"></script>
+<script src="assets/ui.js?v=20261031e"></script>
+<script src="assets/app.js?v=20261031e"></script>
 </body>
 </html>

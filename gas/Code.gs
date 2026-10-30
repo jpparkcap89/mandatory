@@ -20,11 +20,11 @@ var SHEETS = {
 };
 
 var HEAD = {
-  teachers: ['교사ID', '이름', '신분', '부서', '집계', '비밀번호해시', '등록일', '수정일'],
+  teachers: ['교사ID', '이름', '직급', '부서', '집계', '비밀번호해시', '등록일', '수정일'],
   trainings: ['교육ID', '교육명', '짧은 이름', '주기·시간', '세부 조건', '수강 링크', '대상', '사용', '순서'],
   records: ['연도', '교사ID', '이름', '교육ID', '이수', '이수일', '이수번호', '메모', '기록시각'],
   log: ['시각', '누가', '무엇', '내용'],
-  requests: ['요청ID', '요청시각', '이름', '부서', '신분', '메모', '상태', '처리일'],
+  requests: ['요청ID', '요청시각', '이름', '부서', '직급', '메모', '상태', '처리일'],
   settings: ['항목', '값', '설명']
 };
 
@@ -271,6 +271,11 @@ function setup() {
       sh.getRange(1, 1, 1, HEAD[k].length).setValues([HEAD[k]]).setFontWeight('bold').setBackground('#eef2ff');
       sh.setFrozenRows(1);
     }
+  });
+  // 이전 버전 머리글 '신분' → '직급'
+  [['teachers', 3], ['requests', 5]].forEach(function (x) {
+    var sh = ss.getSheetByName(SHEETS[x[0]]);
+    if (sh && sh.getLastRow() > 0 && String(sh.getRange(1, x[1]).getValue()) === '신분') sh.getRange(1, x[1]).setValue('직급');
   });
   var st = ss.getSheetByName(SHEETS.settings);
   if (st.getLastRow() < 2) {
@@ -575,7 +580,7 @@ function importRoster_(rows, excludeMissing) {
       if (seen[t.id]) { skipped.push(r.name + ' (파일 안에서 중복)'); return; }
       seen[t.id] = true;
       var changed = false;
-      if (r.role && r.role !== t.role) { setTeacherCell_(t.row, '신분', r.role); changed = true; }
+      if (r.role && r.role !== t.role) { setTeacherCell_(t.row, '직급', r.role); changed = true; }
       if (r.dept && r.dept !== t.dept) { setTeacherCell_(t.row, '부서', r.dept); changed = true; }
       if (!t.included) { setTeacherCell_(t.row, '집계', '포함'); restored.push(t.name); changed = true; }
       if (changed) { setTeacherCell_(t.row, '수정일', today); if (t.included) updated.push(t.name); }
