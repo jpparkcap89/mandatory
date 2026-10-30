@@ -110,6 +110,11 @@
     },
     saveRecord: function (b) {
       var s = load(), p = auth(b.token, 'teacher');
+      if (b.done) {
+        var dt = String(b.date || ''), ct = clean(b.certNo);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dt)) throw toError('이수일을 입력해 주세요.');
+        if (!ct || !/\d/.test(ct)) throw toError('이수번호를 정확히 입력해 주세요.');
+      }
       var r = s.records.filter(function (x) { return x.teacherId === p.id && x.trainingId === b.trainingId; })[0];
       if (!r) { r = { teacherId: p.id, trainingId: b.trainingId }; s.records.push(r); }
       r.done = !!b.done; r.date = b.done ? (b.date || '') : ''; r.certNo = b.done ? clean(b.certNo) : ''; r.memo = clean(b.memo); r.at = new Date().toISOString();

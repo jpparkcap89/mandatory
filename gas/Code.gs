@@ -375,10 +375,14 @@ var ROUTES = {
     var t = teacherById_(s.id);
     var tr = trainings_(true).filter(function (x) { return x.id === b.trainingId; })[0];
     if (!tr) throw new Error('연수 항목을 찾을 수 없습니다.');
-    var date = String(b.date || '');
-    if (b.done && date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('이수일은 2026-10-10 형식입니다.');
+    var date = String(b.date || '').trim();
+    var cert = clean_(b.certNo);
+    if (b.done) {
+      var bad = checkRecord_(date, cert);
+      if (bad) throw new Error(bad);
+    }
     return withLock_(function () {
-      var rec = upsertRecord_(t, tr.id, !!b.done, date, clean_(b.certNo).slice(0, 60), clean_(b.memo).slice(0, 200));
+      var rec = upsertRecord_(t, tr.id, !!b.done, date, cert.slice(0, 60), clean_(b.memo).slice(0, 200));
       log_(t.name, b.done ? '이수 표시' : '미이수로 변경', tr.name);
       return pubRec_(rec);
     });
@@ -672,6 +676,21 @@ function fmtDate_(v) {
   if (!v) return '';
   if (Object.prototype.toString.call(v) === '[object Date]') return Utilities.formatDate(v, 'Asia/Seoul', 'yyyy-MM-dd');
   return String(v);
+}
+
+// 완료로 저장하려면 이수일·이수번호가 모두 올바라야 합니다 (화면 검사와 같은 기준)
+function checkRecord_(date, cert) {
+  if (!date) return '이수일을 입력해 주세요.';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return '이수일은 2026-10-10 형식입니다.';
+  var p = date.split('-').map(Number), d = new Date(p[0], p[1] - 1, p[2]);
+  if (d.getFullYear() !== p[0] || d.getMonth() !== p[1] - 1 || d.getDate() !== p[2]) return '이수일 형식이 올바르지 않습니다.';
+  if (date > today_()) return '오늘 이후 날짜는 입력할 수 없습니다.';
+  if (date < '2020-01-01') return '2020년 이후 날짜만 입력할 수 있습니다.';
+  if (!cert) return '이수번호를 입력해 주세요.';
+  if (cert.length < 2 || cert.length > 60) return '이수번호는 2~60자입니다.';
+  if (!/\d/.test(cert)) return '이수번호에는 숫자가 들어가야 합니다.';
+  if (!/^[0-9A-Za-z가-힣][0-9A-Za-z가-힣\-_.\/()#: ]*$/.test(cert)) return '이수번호에 쓸 수 없는 문자가 있습니다.';
+  return '';
 }
 
 function clean_(s) { return String(s == null ? '' : s).replace(/\s+/g, ' ').trim(); }

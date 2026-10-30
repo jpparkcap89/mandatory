@@ -168,6 +168,22 @@
     applyFilter();
   }
 
+  // 이수일·이수번호 검사 (서버와 같은 기준)
+  var MIN_DATE = '2020-01-01';
+  function checkRec(date, cert) {
+    var errs = {};
+    if (!date) errs.date = '이수일을 입력해 주세요.';
+    else if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(new Date(date + 'T00:00:00').getTime())) errs.date = '이수일 형식이 올바르지 않습니다.';
+    else if (date > today()) errs.date = '오늘 이후 날짜는 입력할 수 없습니다.';
+    else if (date < MIN_DATE) errs.date = '2020년 이후 날짜만 입력할 수 있습니다.';
+    cert = String(cert || '').trim();
+    if (!cert) errs.cert = '이수번호를 입력해 주세요.';
+    else if (cert.length < 2 || cert.length > 60) errs.cert = '이수번호는 2~60자입니다.';
+    else if (!/\d/.test(cert)) errs.cert = '이수번호에는 숫자가 들어가야 합니다.';
+    else if (!/^[0-9A-Za-z가-힣][0-9A-Za-z가-힣\-_.\/()#: ]*$/.test(cert)) errs.cert = '이수번호에 쓸 수 없는 문자가 있습니다.';
+    return errs;
+  }
+
   function buildChecklist() {
     var m = recMap(), ul = $('#tList .u014-list');
     var K = ['var(--ux-accent)', 'var(--ux-mint)', 'var(--ux-warn)'];
@@ -175,13 +191,14 @@
       var r = m[t.id] || {}, on = !!r.done;
       var multi = /년|학기|시간|회/.test(t.cycle) && !/^매년 1회$/.test(t.cycle);
       return '<li data-id="' + esc(t.id) + '" class="' + (on ? 'is-done' : '') + '">' +
-        '<label class="u014-row"><input class="u014-in" type="checkbox"' + (on ? ' checked' : '') + '><span class="u014-box" aria-hidden="true"><svg viewBox="0 0 26 26"><path d="M7.5 13.5l3.8 3.8 7.4-8"/></svg></span><span class="u014-t">' + esc(t.name) + '</span><span class="u014-tag" style="--k:' + K[multi ? (/학기/.test(t.cycle) ? 2 : 1) : 0] + '">' + esc(t.cycle) + '</span></label>' +
-        '<div class="rec-sum"' + (on ? '' : ' hidden') + '><span class="rs-tx">' + recText(r) + '</span><button type="button" class="rs-edit">수정</button></div>' +
-        '<div class="rec" hidden>' +
-          '<label class="field mini"><span>이수일</span><input type="date" class="r-date" value="' + esc(r.date || '') + '" max="' + today() + '"></label>' +
-          '<label class="field mini"><span>이수번호 <small>(선택)</small></span><input type="text" class="r-cert" maxlength="60" value="' + esc(r.certNo || '') + '" placeholder="수료증 번호"></label>' +
-          '<button class="btn primary sm r-save" type="button">저장</button>' +
-        '</div>' +
+        '<label class="u014-row"><input class="u014-in" type="checkbox"' + (on ? ' checked' : '') + ' aria-describedby="sum-' + esc(t.id) + '"><span class="u014-box" aria-hidden="true"><svg viewBox="0 0 26 26"><path d="M7.5 13.5l3.8 3.8 7.4-8"/></svg></span><span class="u014-t">' + esc(t.name) + '</span></label>' +
+        '<span class="u014-tag" style="--k:' + K[multi ? (/학기/.test(t.cycle) ? 2 : 1) : 0] + '">' + esc(t.cycle) + '</span>' +
+        '<div class="rec-sum" id="sum-' + esc(t.id) + '"><span class="rs-tx">' + (on ? recText(r) : '이수일·이수번호를 입력하면 완료됩니다') + '</span><button type="button" class="rs-edit">' + (on ? '수정' : '입력') + '</button></div>' +
+        '<form class="rec" hidden novalidate>' +
+          '<label class="field mini"><span>이수일 <b class="req">*</b></span><input type="date" class="r-date" required value="' + esc(r.date || '') + '" min="' + MIN_DATE + '" max="' + today() + '"><em class="r-err" data-for="date"></em></label>' +
+          '<label class="field mini"><span>이수번호 <b class="req">*</b></span><input type="text" class="r-cert" required maxlength="60" value="' + esc(r.certNo || '') + '" placeholder="수료증의 이수(수료)번호"><em class="r-err" data-for="cert"></em></label>' +
+          '<div class="rec-act"><button class="btn ghost sm r-cancel" type="button">취소</button><button class="btn primary sm r-save" type="submit">' + (on ? '수정 저장' : '완료로 저장') + '</button></div>' +
+        '</form>' +
         '<details class="more"><summary>기준·수강 안내</summary><p>' + esc(t.detail) + '</p>' + (t.url ? '<a href="' + esc(t.url) + '" target="_blank" rel="noopener">수강·안내 열기 ↗</a>' : '') + '</details>' +
       '</li>';
     }).join('');
@@ -189,50 +206,78 @@
     $$('li[data-id]', ul).forEach(function (li) {
       var id = li.getAttribute('data-id');
       var box = $('.u014-in', li), rec = $('.rec', li), sum = $('.rec-sum', li);
+      function openForm() { sum.hidden = true; rec.hidden = false; li.classList.add('editing'); showErr({}); $('.r-date', li).focus(); }
+      function closeForm() { rec.hidden = true; sum.hidden = false; li.classList.remove('editing'); }
+      function showErr(errs) {
+        $$('.r-err', li).forEach(function (e) { var k = e.getAttribute('data-for'); e.textContent = errs[k] || ''; });
+        $('.r-date', li).setAttribute('aria-invalid', String(!!errs.date));
+        $('.r-cert', li).setAttribute('aria-invalid', String(!!errs.cert));
+      }
       box.addEventListener('change', function () {
-        var on = box.checked;
-        rec.hidden = !on; sum.hidden = true;
-        li.classList.toggle('is-done', on);
-        if (on && !$('.r-date', li).value) $('.r-date', li).value = today();
-        save(id, li, on ? '이수로 표시했습니다' : '미이수로 바꿨습니다', on ? '이수일·이수번호를 확인하고 저장을 눌러 주세요' : '');
+        if (box.checked) {
+          // 완료는 이수일·이수번호를 저장해야만 표시됩니다
+          box.checked = false;
+          openForm();
+          return;
+        }
+        box.checked = true;
+        ask('“' + $('.u014-t', li).textContent + '”을(를) 미이수로 바꿀까요? 입력한 이수일·이수번호도 지워집니다.', '미이수로 변경').then(function (ok) {
+          if (!ok) return;
+          save(id, li, false, '', '').then(function (done) {
+            if (!done) return;
+            box.checked = false; li.classList.remove('is-done');
+            $('.r-date', li).value = ''; $('.r-cert', li).value = '';
+            $('.rs-tx', li).textContent = '이수일·이수번호를 입력하면 완료됩니다';
+            $('.rs-edit', li).textContent = '입력'; $('.r-save', li).textContent = '완료로 저장';
+            closeForm(); applyFilter();
+          });
+        });
       });
-      $('.rs-edit', li).addEventListener('click', function () { sum.hidden = true; rec.hidden = false; $('.r-date', li).focus(); });
-      $('.r-save', li).addEventListener('click', function () {
-        save(id, li, '이수 정보를 저장했습니다').then(function (ok) { if (ok) { rec.hidden = true; sum.hidden = false; } });
+      $('.rs-edit', li).addEventListener('click', openForm);
+      $('.r-cancel', li).addEventListener('click', function () {
+        var r = recMap()[id] || {};
+        $('.r-date', li).value = r.done ? r.date || '' : ''; $('.r-cert', li).value = r.done ? r.certNo || '' : '';
+        closeForm();
+      });
+      $$('input', rec).forEach(function (inp) { inp.addEventListener('input', function () { if (inp.getAttribute('aria-invalid') === 'true') showErr(checkRec($('.r-date', li).value, $('.r-cert', li).value)); }); });
+      rec.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var date = $('.r-date', li).value, cert = $('.r-cert', li).value.trim();
+        var errs = checkRec(date, cert);
+        showErr(errs);
+        if (errs.date || errs.cert) { $(errs.date ? '.r-date' : '.r-cert', li).focus(); return; }
+        var was = box.checked;
+        var btn = $('.r-save', li); busy(btn, true, '저장 중…');
+        save(id, li, true, date, cert).then(function (done) {
+          busy(btn, false);
+          if (!done) return;
+          box.checked = true; li.classList.add('is-done');
+          $('.rs-tx', li).innerHTML = recText({ date: date, certNo: cert });
+          $('.rs-edit', li).textContent = '수정'; btn.textContent = '수정 저장';
+          closeForm(); applyFilter();
+          if (!was) toast('ok', '완료로 표시했습니다', $('.u014-t', li).textContent);
+        });
       });
     });
   }
 
   function recText(r) {
-    return '📅 ' + esc(r.date || '이수일 미입력') + (r.certNo ? ' · 이수번호 ' + esc(r.certNo) : '');
+    return '📅 ' + esc(r.date || '') + ' · 이수번호 ' + esc(r.certNo || '');
   }
 
-  function save(id, li, okMsg, okSub) {
-    var box = $('.u014-in', li);
-    var payload = { token: S.tToken, trainingId: id, done: box.checked, date: $('.r-date', li).value, certNo: $('.r-cert', li).value };
-    var prev = S.t.records.filter(function (r) { return r.trainingId === id; })[0];
-    var prevCopy = prev ? Object.assign({}, prev) : null;
-    // 화면 먼저 바꾸고 서버에 저장합니다
-    var opt = { teacherId: S.t.teacher.id, trainingId: id, done: payload.done, date: payload.done ? payload.date : '', certNo: payload.done ? payload.certNo : '' };
-    S.t.records = S.t.records.filter(function (r) { return r.trainingId !== id; }).concat([opt]);
-    renderTeacher(false);
+  function save(id, li, done, date, certNo) {
+    var payload = { token: S.tToken, trainingId: id, done: done, date: done ? date : '', certNo: done ? certNo : '' };
     var name = (S.t.trainings.filter(function (t) { return t.id === id; })[0] || {}).name;
-    var w = toast('wait', '저장하는 중…', name);
+    var w = done ? null : toast('wait', '저장하는 중…', name);
     return API.call('saveRecord', payload).then(function (r) {
       S.t.records = S.t.records.filter(function (x) { return x.trainingId !== id; }).concat([r]);
       renderTeacher(false);
-      $('.rs-tx', li).innerHTML = recText(r);
-      w && w.done('ok', okMsg, okSub || name);
-      if (!payload.done) return true;
-      var all = S.t.trainings.every(function (t) { var x = recMap()[t.id]; return x && x.done; });
-      if (all) toast('ok', '모든 연수를 이수했습니다 🎉', '한 해 동안 수고 많으셨습니다');
+      if (w) w.done('ok', '미이수로 바꿨습니다', name);
+      if (done && S.t.trainings.every(function (t) { var x = recMap()[t.id]; return x && x.done; })) toast('ok', '모든 연수를 이수했습니다 🎉', '한 해 동안 수고 많으셨습니다');
       return true;
     }).catch(function (err) {
-      S.t.records = S.t.records.filter(function (x) { return x.trainingId !== id; }).concat(prevCopy ? [prevCopy] : []);
-      box.checked = !!(prevCopy && prevCopy.done);
-      $('.rec', li).hidden = true; $('.rec-sum', li).hidden = !box.checked; li.classList.toggle('is-done', box.checked);
-      renderTeacher(false);
-      if (!authFail(err, 'teacher')) w && w.done('err', '저장하지 못했습니다', err.message);
+      if (authFail(err, 'teacher')) return false;
+      if (w) w.done('err', '저장하지 못했습니다', err.message); else toast('err', '저장하지 못했습니다', err.message);
       return false;
     });
   }

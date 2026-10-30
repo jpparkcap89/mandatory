@@ -119,15 +119,29 @@ h3{margin:2px 0 6px;font-size:19px;font-weight:720;letter-spacing:-.02em;line-he
 .chip{height:38px;padding:0 16px;border-radius:var(--r-pill);border:0;background:rgba(255,255,255,.8);box-shadow:inset 0 0 0 1px var(--hairline);font-size:14px;font-weight:650;color:var(--muted);cursor:pointer;transition:.2s}
 .chip.on{background:var(--ink);color:#fff;box-shadow:none}
 #tList{margin-bottom:12px}
-#tList .u014-t{flex:1;min-width:0}
-#tList .u014-tag{margin-left:8px}
-.rec{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding:0 4px 12px 44px}
-.rec .field{flex:1;min-width:140px}
-.rec-sum{display:flex;align-items:center;gap:10px;padding:0 4px 8px 44px;font-size:13px;color:var(--muted)}
-.rs-edit{border:0;background:none;padding:2px 6px;border-radius:8px;color:var(--primary);font-size:13px;font-weight:650;cursor:pointer}
-.rs-edit:hover{background:rgba(59,99,246,.08)}
-.more{padding:0 4px 12px 44px;font-size:14px;color:var(--muted)}
-.more summary{cursor:pointer;width:max-content;font-size:13px;font-weight:650;color:var(--primary)}
+/* 연수 타일: 넓은 화면 3열, 중간 2열, 휴대폰 1열 */
+#tList .u014-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:8px;align-items:start}
+#tList .u014-list>li{display:flex;flex-direction:column;gap:6px;min-width:0;padding:12px 14px 12px;border:1px solid var(--ux-line);border-top:1px solid var(--ux-line);border-radius:20px;background:var(--ux-surface-2);transition:background .3s,box-shadow .3s,border-color .3s}
+#tList .u014-list>li.is-done{background:color-mix(in srgb,var(--ux-mint) 9%,var(--ux-surface));border-color:color-mix(in srgb,var(--ux-mint) 30%,transparent)}
+#tList .u014-list>li.editing{background:var(--ux-surface);border-color:var(--ux-accent);box-shadow:0 0 0 3px var(--ux-accent-soft)}
+#tList .u014-row{padding:2px 0;align-items:flex-start}
+#tList .u014-box{margin-top:1px}
+#tList .u014-t{flex:1;min-width:0;font-size:15px;line-height:1.45}
+#tList .u014-tag{align-self:flex-start;margin-left:40px;white-space:normal;line-height:1.35}
+#tList li.is-done .u014-tag{opacity:.5}
+.rec-sum{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 0 0 40px;font-size:13px;color:var(--muted);min-height:28px}
+li:not(.is-done) .rs-tx{color:#a35f00}
+.rs-edit{flex:none;border:0;background:rgba(59,99,246,.08);padding:3px 10px;border-radius:999px;color:var(--primary);font-size:13px;font-weight:700;cursor:pointer}
+.rs-edit:hover{background:rgba(59,99,246,.16)}
+.rec{display:flex;flex-direction:column;gap:8px;padding:4px 0 2px}
+.rec .field{min-width:0}
+.req{color:var(--danger);font-weight:800}
+.r-err{font-style:normal;font-size:12.5px;font-weight:650;color:var(--danger);min-height:0}
+.r-err:empty{display:none}
+.rec input[aria-invalid=true]{border-color:var(--danger);box-shadow:0 0 0 3px rgba(229,72,107,.12)}
+.rec-act{display:flex;justify-content:flex-end;gap:6px}
+.more{padding:0 0 0 40px;font-size:13.5px;color:var(--muted)}
+.more summary{cursor:pointer;width:max-content;font-size:12.5px;font-weight:650;color:var(--primary)}
 .more p{margin:6px 0}
 .more a{font-weight:650}
 .foot-note{font-size:13px;color:var(--muted);margin:0 4px 20px}
@@ -244,6 +258,7 @@ h3{margin:2px 0 6px;font-size:19px;font-weight:720;letter-spacing:-.02em;line-he
   .grid-hero,.grid-2{grid-template-columns:1fr}
   .kpis{grid-template-columns:repeat(2,1fr)}
   .trlist{grid-template-columns:1fr}
+  #tList .u014-list{grid-template-columns:repeat(2,minmax(0,1fr))}
   .pv-stats{grid-template-columns:repeat(3,1fr)}
 }
 @media (max-width:640px){
@@ -253,6 +268,7 @@ h3{margin:2px 0 6px;font-size:19px;font-weight:720;letter-spacing:-.02em;line-he
   .trow-head .trow-tags{grid-column:2 / -1;justify-content:flex-start}
   .trow-head .mini-prog{grid-column:1 / -1}
   .trow-body{padding-left:14px}
+  #tList .u014-list{grid-template-columns:1fr}
 }
 @media (max-width:520px){
   .wrap{padding:0 16px}
@@ -270,11 +286,7 @@ h3{margin:2px 0 6px;font-size:19px;font-weight:720;letter-spacing:-.02em;line-he
   .ask{width:min(420px,calc(100% - 24px))}
 .ask-msg{margin:0;font-size:16px;font-weight:600;line-height:1.6}
 .miss-list{grid-template-columns:1fr}
-  .rec,.more,.rec-sum{padding-left:4px}
-  #tList{padding:18px 14px 8px}
-  #tList .u014-row{flex-wrap:wrap;gap:6px 12px}
-  #tList .u014-t{flex:1 1 calc(100% - 50px)}
-  #tList .u014-tag{margin-left:40px;white-space:normal}
+  #tList{padding:18px 14px 12px}
   .brand b{font-size:15px}
 }
 @media (prefers-reduced-motion:reduce){
