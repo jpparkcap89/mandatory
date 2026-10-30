@@ -2,5 +2,5 @@
    API_URL: Google Apps Script 웹 앱 주소(/exec 로 끝남)를 넣으세요.
    비워 두면 데모 모드로 열립니다(데이터는 이 브라우저에만 저장). */
 window.ZERO_ON_CONFIG = {
-  API_URL: ''
+  API_URL: 'https://script.google.com/macros/s/AKfycbxg2_9bzdL-lM_c6Sw4djgE__TzjWleH1ac0md6vNyr6MqJUsybtJ5YgB482gmo43BZ/exec'
 };
