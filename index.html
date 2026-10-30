@@ -1,1 +1,298 @@
-Hello, World!
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zero-ON 법정의무연수 이수 관리</title>
+<meta name="description" content="교원 법정의무연수 이수 여부를 선생님이 직접 표시하고 담당자가 한눈에 확인하는 도구">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="assets/lucian.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="blob b1" aria-hidden="true"></div>
+<div class="blob b2" aria-hidden="true"></div>
+<div class="blob b3" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="./" aria-label="처음 화면">
+      <span class="mark">Z</span>
+      <span><b>Zero-ON 법정의무연수</b><small id="schoolName">이수 관리</small></span>
+    </a>
+    <button class="btn ghost sm" id="logoutBtn" type="button" hidden>로그아웃</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="demo-banner" id="demoBanner" hidden>🧪 <b>데모 모드</b>입니다. 서버 주소(config.js)가 비어 있어 데이터가 이 브라우저에만 저장됩니다. 담당자 비밀번호 <code>demo1234</code>, 선생님 비밀번호 <code>1234</code> (예: 박종필·심재희)</div>
+
+  <section class="hero">
+    <span class="eyebrow" id="eyebrow">✨ 법정의무연수 이수 관리</span>
+    <h1>법정의무연수 이수 현황을<br><span class="grad">한눈에 확인하세요</span></h1>
+    <p class="lead">선생님은 <strong>수료한 연수를 직접 표시</strong>하고, 담당자는 <strong>학교 전체 이수율과 미이수 교원</strong>을 바로 확인합니다.</p>
+
+    <!-- Lucian UX/UI Prompt #039 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#039 -->
+    <div class="ux u039" id="roleTabs">
+      <div class="u039-tabs" role="tablist" aria-label="사용자 선택">
+        <span class="u039-pill" aria-hidden="true"></span>
+        <button class="u039-tab" type="button" role="tab" aria-selected="true" data-role="teacher">🙋 선생님</button>
+        <button class="u039-tab" type="button" role="tab" aria-selected="false" data-role="admin">🗂️ 담당자</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ 선생님 ═══════════ -->
+  <section id="teacherView" class="view" role="tabpanel" aria-label="선생님 화면">
+
+    <div class="card login" id="tLogin">
+      <!-- 1. 이름 + 비밀번호 -->
+      <div class="step" id="tStepLogin">
+        <p class="sec-eye">TEACHER LOGIN</p>
+        <h2>🙋 선생님 로그인</h2>
+        <p class="muted">담당자가 등록한 교원 명단의 이름으로 들어옵니다. <strong>처음이시면 쓰실 비밀번호를 입력</strong>하세요. 그 비밀번호로 정해집니다.</p>
+        <form id="tLoginForm" class="stack-form" autocomplete="off">
+          <label class="field"><span>이름</span><input id="tName" type="text" maxlength="20" required placeholder="예: 홍길동" autocomplete="name"></label>
+          <label class="field"><span>비밀번호</span><input id="tPw" type="password" maxlength="30" minlength="4" required placeholder="4자 이상" autocomplete="current-password"></label>
+          <ul class="cand" id="tCandidates" hidden></ul>
+          <p class="form-msg" id="tMsg" role="alert"></p>
+          <button class="btn primary block" type="submit" id="tLoginBtn">로그인</button>
+        </form>
+      </div>
+
+      <!-- 2. 처음 로그인: 비밀번호 확인 -->
+      <div class="step" id="tStepSet" hidden>
+        <p class="sec-eye">FIRST LOGIN</p>
+        <h2>🔐 비밀번호를 정해 주세요</h2>
+        <p class="muted"><strong id="tSetName"></strong> 선생님, 처음 오셨네요. 방금 입력한 비밀번호를 한 번 더 입력하면 그대로 정해집니다.</p>
+        <form id="tSetForm" class="stack-form" autocomplete="off">
+          <label class="field"><span>비밀번호 확인</span><input id="tPw2" type="password" maxlength="30" required autocomplete="new-password"></label>
+          <p class="form-msg" id="tSetMsg" role="alert"></p>
+          <div class="pv-act"><button class="btn ghost" type="button" data-back>처음으로</button><button class="btn primary" type="submit">비밀번호 정하고 시작</button></div>
+        </form>
+      </div>
+
+      <!-- 3. 명단에 없음: 추가 요청 -->
+      <div class="step" id="tStepReq" hidden>
+        <p class="sec-eye">NOT ON THE LIST</p>
+        <h2>📮 명단에 없는 이름입니다</h2>
+        <p class="muted"><strong id="tReqName"></strong> 선생님은 아직 교원 명단에 없습니다. 이름에 오타가 없는지 확인하시고, 맞다면 담당자에게 추가를 요청해 주세요.</p>
+        <form id="tReqForm" class="stack-form" autocomplete="off">
+          <div class="grid-2 tight">
+            <label class="field"><span>부서·학년 <small>(선택)</small></span><input id="tReqDept" type="text" maxlength="30" placeholder="예: 3학년부"></label>
+            <label class="field"><span>신분 <small>(선택)</small></span><input id="tReqRole" type="text" maxlength="20" placeholder="예: 기간제"></label>
+          </div>
+          <label class="field"><span>담당자에게 남길 말 <small>(선택)</small></span><input id="tReqMemo" type="text" maxlength="200" placeholder="예: 10월 신규 전입했습니다"></label>
+          <p class="form-msg" id="tReqMsg" role="alert"></p>
+          <div class="pv-act"><button class="btn ghost" type="button" data-back>이름 다시 입력</button><button class="btn primary" type="submit">추가 요청 보내기</button></div>
+        </form>
+        <div class="done-box" id="tReqDone" hidden>✅ 요청을 보냈습니다. 담당자가 명단에 추가하면 같은 이름으로 로그인할 수 있습니다.</div>
+      </div>
+    </div>
+
+    <div id="tDash" hidden>
+      <div class="notice" id="tNotice" hidden></div>
+      <div class="grid-hero">
+        <div class="card sum">
+          <div class="big-ring" id="tRing" style="--p:0">
+            <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" cx="60" cy="60" r="52"/></svg>
+            <div class="big-ring-tx"><b id="tPct">0%</b><small>이수율</small></div>
+          </div>
+          <div class="sum-tx">
+            <p class="sec-eye">MY PROGRESS</p>
+            <h2 id="tHello">선생님의 연수 현황</h2>
+            <p class="muted" id="tSummary"></p>
+            <div class="stat-row">
+              <div class="stat ok"><span>✅ 완료</span><b id="tDone">0</b></div>
+              <div class="stat todo"><span>⏳ 남은 연수</span><b id="tLeft">0</b></div>
+              <div class="stat"><span>📅 학년도</span><b id="tYear">-</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="card next">
+          <p class="sec-eye">NEXT</p>
+          <h3>🧭 다음에 들을 연수</h3>
+          <ul class="next-list" id="tNext"></ul>
+        </div>
+      </div>
+
+      <div class="chips" role="group" aria-label="목록 보기">
+        <button class="chip on" type="button" data-f="all">전체</button>
+        <button class="chip" type="button" data-f="todo">남은 연수</button>
+        <button class="chip" type="button" data-f="done">완료</button>
+      </div>
+
+      <!-- Lucian UX/UI Prompt #014 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#014 -->
+      <div class="ux u014" id="tList">
+        <div class="u014-head">
+          <div>
+            <b>📋 법정의무연수 체크리스트</b>
+            <span class="u014-sub" aria-live="polite"><span>수료한 연수를 체크해 주세요</span><span>모든 연수를 이수했어요 🎉</span></span>
+          </div>
+          <div class="u014-ring" aria-hidden="true">
+            <svg viewBox="0 0 48 48"><circle class="bg" cx="24" cy="24" r="20"/><circle class="fg" cx="24" cy="24" r="20"/></svg>
+            <span class="u014-num">0/0</span>
+            <span class="u014-done"><svg viewBox="0 0 16 16"><path d="M3.5 8.4l3 3 6-6.4"/></svg></span>
+          </div>
+        </div>
+        <ul class="u014-list"></ul>
+      </div>
+      <p class="foot-note">체크는 본인 확인용 기록입니다. 시간·실습·학기 조건이 있는 연수는 기준을 충족했을 때 체크해 주세요. 법적 이수 인정 여부는 수료증과 학교 확인 절차를 따릅니다.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════ 담당자 ═══════════ -->
+  <section id="adminView" class="view" role="tabpanel" aria-label="담당자 화면" hidden>
+
+    <div class="card login" id="aLogin">
+      <p class="sec-eye">ADMIN</p>
+      <h2>🗂️ 담당자 로그인</h2>
+      <p class="muted">설치할 때 받은 담당자 비밀번호를 입력해 주세요.</p>
+      <form id="aLoginForm" class="row-form">
+        <label class="field grow"><span>비밀번호</span><input id="aPw" type="password" required autocomplete="current-password"></label>
+        <button class="btn primary" type="submit">로그인</button>
+      </form>
+    </div>
+
+    <div id="aDash" hidden>
+      <nav class="subnav" aria-label="담당자 메뉴">
+        <button type="button" class="on" data-p="overview">📊 현황</button>
+        <button type="button" data-p="teachers">👩‍🏫 교원별</button>
+        <button type="button" data-p="roster">📤 명단 관리 <span class="badge" id="reqBadge" hidden>0</span></button>
+        <button type="button" data-p="trainings">📚 연수 항목</button>
+      </nav>
+
+      <!-- 현황 -->
+      <div class="pane" data-pane="overview">
+        <button class="req-banner" type="button" id="reqBanner" hidden>📮 명단 추가 요청 <b id="reqBannerN">0</b>건이 기다리고 있습니다 · 확인하기 →</button>
+        <div class="kpis">
+          <div class="kpi"><span>👥 집계 교원</span><b id="kTeachers">0</b><small>명</small></div>
+          <div class="kpi"><span>📈 전체 이수율</span><b id="kRate">0</b><small>%</small></div>
+          <div class="kpi ok"><span>🎉 모두 완료</span><b id="kAll">0</b><small>명</small></div>
+          <div class="kpi warn"><span>⏳ 미이수</span><b id="kMiss">0</b><small>건</small></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div><p class="sec-eye">BY TRAINING</p><h3>📚 연수별 이수율</h3></div>
+            <div class="head-act">
+              <select id="oSort" aria-label="정렬"><option value="low">이수율 낮은 순</option><option value="order">기본 순서</option></select>
+              <button class="btn ghost sm" type="button" id="exportBtn">⬇️ 엑셀 내려받기</button>
+            </div>
+          </div>
+          <p class="muted sm">막대를 누르면 아직 이수하지 않은 교원 명단이 열립니다.</p>
+          <ul class="bars" id="oBars"></ul>
+        </div>
+      </div>
+
+      <!-- 교원별 -->
+      <div class="pane" data-pane="teachers" hidden>
+        <div class="card">
+          <div class="card-head">
+            <div><p class="sec-eye">BY TEACHER</p><h3>👩‍🏫 교원별 이수 현황</h3></div>
+            <div class="head-act">
+              <input id="tSearch" type="search" placeholder="이름·부서 검색" aria-label="이름이나 부서 검색">
+              <select id="tFilter" aria-label="상태 필터">
+                <option value="all">전체</option><option value="todo">미이수 있음</option><option value="done">모두 완료</option><option value="nopin">비밀번호 미설정</option><option value="out">집계 제외</option>
+              </select>
+            </div>
+          </div>
+          <p class="muted sm">이름을 누르면 연수별 이수 여부가 펼쳐집니다. 초록은 완료, 회색은 미이수입니다.</p>
+          <ul class="tlist" id="aTeachers"></ul>
+        </div>
+      </div>
+
+      <!-- 명단 업로드 -->
+      <div class="pane" data-pane="roster" hidden>
+        <div class="card" id="reqCard" hidden>
+          <p class="sec-eye">REQUESTS</p>
+          <h3>📮 명단 추가 요청</h3>
+          <p class="muted sm">로그인하려다 명단에 없던 선생님이 보낸 요청입니다. 승인하면 바로 명단에 추가되고, 그 이름으로 로그인할 수 있습니다.</p>
+          <ul class="req-list" id="reqList"></ul>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <p class="sec-eye">ROSTER</p>
+            <h3>📤 교원 명단 업로드</h3>
+            <p class="muted sm">엑셀(.xlsx·.xls) 또는 CSV 파일을 올리세요. <strong>이름</strong>(또는 성명) 열은 꼭 필요하고, <strong>신분·부서·교사ID</strong> 열은 있으면 함께 반영합니다.</p>
+            <!-- Lucian UX/UI Prompt #032 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#032 -->
+            <div class="ux u032" id="dropBox">
+              <button class="u032-zone" type="button">
+                <svg class="u032-dash" aria-hidden="true"><rect width="100%" height="100%" rx="25"/></svg>
+                <span class="u032-orb" aria-hidden="true"><svg viewBox="0 0 28 28"><path d="M8.5 20.5H7a5 5 0 0 1-.6-10 7 7 0 0 1 13.4-1.6A5.5 5.5 0 0 1 21 20.5h-1.5M14 13v10M10.5 16.5L14 13l3.5 3.5"/></svg></span>
+                <b>명단 파일을 끌어다 놓거나 <em>골라 주세요</em></b>
+                <small>XLSX · XLS · CSV (UTF-8, EUC-KR 모두 가능)</small>
+              </button>
+              <input class="u032-file" type="file" accept=".xlsx,.xls,.csv" tabindex="-1" aria-hidden="true">
+              <ul class="u032-list" aria-live="polite"></ul>
+            </div>
+            <a class="btn ghost sm tpl" href="assets/roster-template.csv" download>📄 명단 양식(CSV) 받기</a>
+          </div>
+          <div class="card" id="rPreview">
+            <p class="sec-eye">PREVIEW</p>
+            <h3>🔍 반영 전 확인</h3>
+            <div id="rEmpty" class="empty">파일을 올리면 신규·기존·제외 대상을 여기서 먼저 보여 드립니다.</div>
+            <div id="rBody" hidden>
+              <div class="pv-stats" id="rStats"></div>
+              <label class="check"><input type="checkbox" id="rExclude"> 파일에 없는 기존 교원은 <strong>집계 제외</strong>로 바꾸기 <small>(기록은 지우지 않습니다)</small></label>
+              <div class="pv-table-wrap"><table class="pv-table"><thead><tr><th>상태</th><th>이름</th><th>신분</th><th>부서</th></tr></thead><tbody id="rRows"></tbody></table></div>
+              <div class="pv-act"><button class="btn ghost" type="button" id="rCancel">취소</button><button class="btn primary" type="button" id="rCommit">명단에 반영하기</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="card guide">
+          <h3>📝 명단 변경 원칙</h3>
+          <ul>
+            <li><strong>신규 교원</strong>은 새 교사ID가 자동으로 붙습니다. 기존 이름은 덮어쓰지 않습니다.</li>
+            <li><strong>전출·휴직 교원</strong>은 지우지 않고 집계 제외로 바꿉니다. 복직하면 다시 올릴 때 자동으로 포함됩니다.</li>
+            <li><strong>같은 이름</strong>이 두 명 이상이면 부서나 교사ID 열로 구분해 주세요. 구분되지 않으면 건너뜁니다.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 연수 항목 -->
+      <div class="pane" data-pane="trainings" hidden>
+        <div class="card">
+          <p class="sec-eye">TRAININGS</p>
+          <h3>📚 연수 항목 관리</h3>
+          <p class="muted sm">2026 경기 교원 법정의무연수 기준으로 기본 항목이 들어 있습니다. 우리 학교 대상이 아닌 항목은 <strong>숨김</strong>으로 바꾸면 선생님 화면과 집계에서 빠집니다. 이름·링크 수정은 스프레드시트의 <code>연수목록</code> 시트에서 합니다.</p>
+          <ul class="trlist" id="aTrainings"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog class="sheet" id="missDlg" aria-labelledby="missTitle">
+  <div class="sheet-in">
+    <div class="sheet-head"><h3 id="missTitle">미이수 명단</h3><button class="icon-x" type="button" data-close aria-label="닫기">✕</button></div>
+    <p class="muted sm" id="missSub"></p>
+    <ul class="miss-list" id="missList"></ul>
+    <div class="pv-act"><button class="btn primary" type="button" id="missCopy">📋 이름 복사</button></div>
+  </div>
+</dialog>
+
+<dialog class="sheet ask" id="askDlg" aria-labelledby="askMsg">
+  <div class="sheet-in">
+    <p id="askMsg" class="ask-msg"></p>
+    <div class="pv-act"><button class="btn ghost" type="button" data-v="0">취소</button><button class="btn primary" type="button" data-v="1">확인</button></div>
+  </div>
+</dialog>
+
+<footer class="foot">© 2026 Zero-ON · 교사 행정업무를 덜어 수업에 집중합니다</footer>
+
+<!-- Lucian UX/UI Prompt #070 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#070 -->
+<div class="ux u070" id="toastBox">
+  <div class="u070-zone" role="region" aria-label="알림" tabindex="-1">
+    <div class="u070-live" aria-live="polite"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+<script src="assets/config.js"></script>
+<script src="assets/seed.js"></script>
+<script src="assets/api.js"></script>
+<script src="assets/ui.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

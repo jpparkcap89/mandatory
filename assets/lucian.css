@@ -1,0 +1,149 @@
+/* Lucian UX/UI Prompt theme tokens · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/
+   --ux-* 토큰을 cap89 팔레트에 맞춰 연결했습니다. */
+:root{
+  --ux-page:#f8fbff; --ux-surface:#ffffff; --ux-surface-2:#f4f7ff; --ux-surface-3:#e8eefc;
+  --ux-ink:#24324a; --ux-ink-2:#667085; --ux-ink-3:#98a2b3;
+  --ux-line:rgba(36,50,74,.07); --ux-line-2:rgba(36,50,74,.15);
+  --ux-accent:#3b63f6; --ux-accent-2:#38bdf8; --ux-accent-soft:rgba(59,99,246,.12); --ux-accent-ink:#ffffff;
+  --ux-mint:#2bb39a; --ux-warn:#f59e0b; --ux-danger:#e5486b;
+  --ux-glass:rgba(255,255,255,.72); --ux-glass-line:rgba(255,255,255,.95);
+  --ux-shadow:rgba(67,89,146,.16); --ux-shadow-strong:rgba(67,89,146,.32);
+  --ux-grad:linear-gradient(100deg,#3b63f6 0%,#38bdf8 52%,#f59e0b 100%);
+  --ux-ease:cubic-bezier(.2,.8,.2,1);
+  --ux-spring:cubic-bezier(.34,1.45,.64,1);
+}
+.ux{
+  font-family:var(--font);
+  color:var(--ux-ink);-webkit-font-smoothing:antialiased;letter-spacing:-.01em;
+  -webkit-tap-highlight-color:transparent;
+  word-break:keep-all;overflow-wrap:break-word;
+}
+:where(.ux) :is(button,input,textarea,select){font:inherit;color:inherit}
+:where(.ux) button{cursor:pointer}
+.ux :focus-visible{outline:2px solid var(--ux-accent);outline-offset:3px}
+.ux [hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){
+  .ux,.ux *,.ux *::before,.ux *::after{
+    animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important;
+  }
+}
+
+/* Lucian UX/UI Prompt #039 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#039
+   변경: 고정 크기 → 내용 너비, 아래 목록 패널 제거(탭이 화면 전환을 맡음) */
+.u039{position:relative;width:min(340px,100%)}
+.u039-tabs{position:relative;display:flex;padding:5px;border-radius:999px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line)}
+.u039-pill{position:absolute;left:0;top:5px;bottom:5px;width:var(--w,80px);border-radius:999px;background:var(--ux-ink);transform:translateX(var(--x,5px));box-shadow:0 8px 16px -10px var(--ux-shadow-strong);transition:transform .5s var(--ux-spring),width .5s var(--ux-spring)}
+.u039-tab{position:relative;flex:1;height:42px;border:0;padding:0;border-radius:999px;background:none;font-size:14px;font-weight:680;color:var(--ux-ink-2);white-space:nowrap;transition:color .35s var(--ux-ease)}
+.u039-tab[aria-selected="true"]{color:var(--ux-page)}
+.u039-tab:focus-visible{outline:2px solid var(--ux-accent);outline-offset:2px}
+
+/* Lucian UX/UI Prompt #014 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#014
+   변경: 고정 330px → 카드 너비, 연수 목록 데이터로 줄 생성, 줄 아래 이수일·이수번호 입력칸 추가 */
+.u014{position:relative;width:100%;padding:22px 22px 14px;border-radius:28px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line),0 30px 60px -36px var(--ux-shadow-strong)}
+.u014-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px}
+.u014-head b{display:block;font-size:20px;font-weight:760;letter-spacing:-.035em}
+.u014-sub{position:relative;display:block;width:240px;max-width:100%;height:19px;margin-top:4px;overflow:hidden;white-space:nowrap;font-size:13.5px;color:var(--ux-ink-3)}
+.u014-sub span{display:block;line-height:19px;transition:transform .5s var(--ux-spring),opacity .3s var(--ux-ease)}
+.u014-sub span+span{position:absolute;left:0;top:0;transform:translateY(100%);opacity:0;color:var(--ux-mint);font-weight:650}
+.u014.is-all .u014-sub span:first-child{transform:translateY(-100%);opacity:0}
+.u014.is-all .u014-sub span+span{transform:none;opacity:1}
+.u014-ring{position:relative;width:48px;height:48px;flex:none}
+.u014-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.u014-ring circle{fill:none;stroke-width:5;stroke-linecap:round}
+.u014-ring .bg{stroke:var(--ux-surface-3)}
+.u014-ring .fg{stroke:var(--ux-accent);stroke-dasharray:125.7;stroke-dashoffset:calc(125.7 * (1 - var(--p,0)));transition:stroke-dashoffset .7s var(--ux-spring),stroke .4s var(--ux-ease)}
+.u014.is-all .u014-ring .fg{stroke:var(--ux-mint)}
+.u014-num{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:760;font-variant-numeric:tabular-nums;transition:opacity .3s,transform .5s var(--ux-spring)}
+.u014-done{position:absolute;inset:9px;border-radius:50%;display:grid;place-items:center;background:var(--ux-mint);color:var(--ux-accent-ink);transform:scale(0);transition:transform .55s var(--ux-spring)}
+.u014-done svg{width:16px;height:16px;transform:none;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.u014.is-all .u014-num{opacity:0;transform:scale(.5)}
+.u014.is-all .u014-done{transform:none}
+.u014-list{margin:0;padding:0;list-style:none}
+.u014-list>li{border-top:1px solid var(--ux-line)}
+.u014-row{position:relative;display:flex;align-items:center;gap:14px;padding:12px 4px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.u014-in{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.u014-box{position:relative;width:26px;height:26px;flex:none;border-radius:50%;box-shadow:inset 0 0 0 2px var(--ux-line-2);transition:box-shadow .3s var(--ux-ease),transform .45s var(--ux-spring)}
+.u014-box::before{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(140deg,#8B6CFF,#5B8CFF);transform:scale(0);transition:transform .45s var(--ux-spring)}
+.u014-box svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:#fff;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.u014-box path{stroke-dasharray:18;stroke-dashoffset:18;transition:stroke-dashoffset .35s var(--ux-ease)}
+.u014-row:hover .u014-box{box-shadow:inset 0 0 0 2px var(--ux-accent)}
+.u014-row:active .u014-box{transform:scale(.86)}
+.u014-in:focus-visible+.u014-box{outline:2px solid var(--ux-accent);outline-offset:3px}
+.u014-in:checked+.u014-box{box-shadow:none}
+.u014-in:checked+.u014-box::before{transform:scale(1)}
+.u014-in:checked+.u014-box path{stroke-dashoffset:0;transition-delay:.12s}
+.u014-t{position:relative;font-size:15.5px;font-weight:600;letter-spacing:-.02em;color:var(--ux-ink);transition:color .4s var(--ux-ease)}
+.u014-t::after{content:"";position:absolute;left:-2px;right:-2px;top:52%;height:2px;border-radius:2px;background:var(--ux-ink-3);transform:scaleX(0);transform-origin:0 50%;transition:transform .45s var(--ux-ease)}
+.u014-in:checked~.u014-t{color:var(--ux-ink-3)}
+.u014-in:checked~.u014-t::after{transform:scaleX(1);transition-delay:.18s}
+.u014-tag{margin-left:auto;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:650;background:color-mix(in srgb,var(--k) 15%,transparent);color:var(--k);white-space:nowrap;transition:opacity .4s var(--ux-ease)}
+.u014-in:checked~.u014-tag{opacity:.4}
+
+/* Lucian UX/UI Prompt #032 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#032
+   변경: 고정 340×420 → 카드 너비, 흉내 진행률 → 실제 파일 읽기 단계, 엑셀·CSV 한 개만 */
+.u032{position:relative;width:100%}
+.u032-zone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:196px;border:0;padding:0 16px;border-radius:26px;background:var(--ux-surface);color:var(--ux-ink);cursor:pointer;
+  transition:transform .5s var(--ux-spring),background-color .3s var(--ux-ease)}
+.u032-zone:focus-visible{outline:2px solid var(--ux-accent);outline-offset:4px}
+.u032-zone svg.u032-dash{position:absolute;left:1px;top:1px;width:calc(100% - 2px);height:calc(100% - 2px);overflow:visible;pointer-events:none}
+.u032-dash rect{fill:none;stroke:var(--ux-line-2);stroke-width:2;stroke-dasharray:8 7;transition:stroke .3s var(--ux-ease)}
+.u032-zone:hover .u032-dash rect,.u032.is-over .u032-dash rect{stroke:var(--ux-accent);animation:u032-march .9s linear infinite}
+@keyframes u032-march{to{stroke-dashoffset:-30}}
+.u032.is-over .u032-zone{transform:scale(1.03);background:color-mix(in srgb,var(--ux-accent) 7%,var(--ux-surface))}
+.u032-orb{width:60px;height:60px;border-radius:20px;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,#5B8CFF,#8B6CFF);box-shadow:0 16px 28px -14px rgba(91,108,255,.8);transition:transform .5s var(--ux-spring)}
+.u032-orb svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.u032-zone:hover .u032-orb{transform:translateY(-4px)}
+.u032.is-over .u032-orb{transform:translateY(-8px) scale(1.1) rotate(-6deg)}
+.u032-zone b{margin-top:14px;font-size:15.5px;font-weight:720;letter-spacing:-.02em;text-align:center}
+.u032-zone b em{font-style:normal;color:var(--ux-accent)}
+.u032-zone small{margin-top:4px;font-size:12.5px;color:var(--ux-ink-3);text-align:center}
+.u032-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.u032-list{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.u032-list:empty{display:none}
+.u032-row{position:relative;display:flex;align-items:center;gap:12px;min-height:62px;padding:10px 12px;border-radius:18px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line);overflow:hidden;animation:u032-in .5s var(--ux-spring)}
+@keyframes u032-in{from{transform:translateY(-10px) scale(.96);opacity:0}}
+.u032-ic{width:36px;height:40px;flex:none;border-radius:9px;display:grid;place-items:end center;padding-bottom:5px;font-size:8.5px;font-weight:800;letter-spacing:.04em;color:#fff;background:var(--c)}
+.u032-meta{flex:1;min-width:0}
+.u032-meta b{display:block;font-size:14px;font-weight:660;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u032-meta small{display:block;margin-top:3px;font-size:12px;color:var(--ux-ink-3);font-variant-numeric:tabular-nums}
+.u032-bar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:var(--ux-accent);transform-origin:0 50%;transform:scaleX(var(--p,0));transition:transform .2s linear,background-color .3s,opacity .5s .4s}
+.u032-row.done .u032-bar{background:var(--ux-mint);opacity:0}
+.u032-row.fail .u032-bar{background:var(--ux-danger)}
+.u032-st{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center}
+.u032-st svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.u032-row.done .u032-st{background:var(--ux-mint);color:var(--ux-accent-ink);animation:u032-pop .45s var(--ux-spring)}
+@keyframes u032-pop{from{transform:scale(.3)}}
+.u032-row.done .u032-st path{stroke-dasharray:16;stroke-dashoffset:16;animation:u032-draw .4s var(--ux-ease) .15s forwards}
+@keyframes u032-draw{to{stroke-dashoffset:0}}
+.u032-row.fail .u032-meta small{color:var(--ux-danger);white-space:normal}
+.u032-retry{height:32px;padding:0 12px;border:0;border-radius:10px;background:color-mix(in srgb,var(--ux-danger) 12%,transparent);color:var(--ux-danger);font-size:12.5px;font-weight:700;white-space:nowrap}
+.u032-retry:focus-visible{outline:2px solid var(--ux-danger);outline-offset:2px}
+.u032-spin{width:20px;height:20px;border-radius:50%;border:2.5px solid var(--ux-surface-3);border-top-color:var(--ux-accent);animation:u032-rot .8s linear infinite}
+@keyframes u032-rot{to{transform:rotate(360deg)}}
+
+/* Lucian UX/UI Prompt #070 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#070
+   변경: 시연 버튼 제거, 화면 아래 고정 위치, 앱의 저장·오류 알림에 연결 */
+.u070{position:fixed;left:50%;bottom:18px;z-index:80;width:min(380px,calc(100% - 24px));height:0;transform:translateX(-50%)}
+.u070-zone{position:absolute;left:0;right:0;bottom:0;height:0;outline:none}
+.u070-t{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:12px;min-height:68px;padding:12px 12px 12px 14px;border-radius:20px;background:var(--ux-surface);box-shadow:0 0 0 1px var(--ux-line),0 16px 30px -18px var(--ux-shadow-strong);transform-origin:50% 100%;transform:translate(var(--dx,0px),var(--y,0px)) scale(var(--s,1));opacity:var(--o,1);transition:transform .5s var(--ux-spring),opacity .35s;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.u070-t.drag{transition:none}
+.u070-t.enter{transform:translateY(90px) scale(.9);opacity:0}
+.u070-t.leave{transform:translate(var(--dx,0px),var(--y,0px)) scale(var(--s,1));opacity:0;pointer-events:none}
+.u070-t.leave.side{transform:translate(calc(var(--dir,1) * 420px),var(--y,0px)) rotate(calc(var(--dir,1) * 8deg))}
+.u070-t>*{transition:opacity .25s}
+.u070-t.back>*{opacity:0}
+.u070-ic{width:36px;height:36px;flex:none;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 15%,transparent);color:var(--c)}
+.u070-ic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.u070-ic i{width:18px;height:18px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:u070-spin .7s linear infinite}
+@keyframes u070-spin{to{transform:rotate(360deg)}}
+.u070-tx{flex:1;min-width:0}
+.u070-tx b{display:block;font-size:14px;font-weight:780;letter-spacing:-.02em}
+.u070-tx small{display:block;margin-top:2px;font-size:12.5px;font-weight:600;color:var(--ux-ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u070-act{height:32px;padding:0 11px;border:0;border-radius:10px;background:var(--ux-surface-2);font-size:12.5px;font-weight:750;color:var(--ux-ink)}
+.u070-x{width:30px;height:30px;flex:none;border:0;padding:0;border-radius:50%;display:grid;place-items:center;background:none;color:var(--ux-ink-3)}
+.u070-x:hover{background:var(--ux-surface-2);color:var(--ux-ink)}
+.u070-x svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.u070-act:focus-visible,.u070-x:focus-visible{outline:2px solid var(--ux-accent);outline-offset:1px}
+.u070-bar{position:absolute;left:16px;right:16px;bottom:0;height:2px;border-radius:2px;background:var(--c);opacity:.5;transform-origin:0 50%;transform:scaleX(var(--left,1))}
+.u070-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
