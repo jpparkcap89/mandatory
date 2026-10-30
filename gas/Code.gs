@@ -302,8 +302,7 @@ function setup() {
   if (!props.getProperty('ADMIN_PASSWORD')) props.setProperty('ADMIN_PASSWORD', DEFAULT_PW);
   var sheet1 = ss.getSheetByName('Sheet1') || ss.getSheetByName('시트1');
   if (sheet1 && sheet1.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(sheet1);
-  Logger.log('설치 완료. 담당자 비밀번호: ' + props.getProperty('ADMIN_PASSWORD'));
-  Logger.log('처음 비밀번호(1234)는 담당자 화면의 ⚙️ 설정에서 꼭 바꿔 주세요.');
+  Logger.log('설치 완료.' + (props.getProperty('ADMIN_PASSWORD') === DEFAULT_PW ? ' 담당자 처음 비밀번호는 1234입니다. 담당자 화면의 ⚙️ 설정에서 꼭 바꿔 주세요.' : ' 담당자 비밀번호는 이미 바뀌어 있습니다.'));
 }
 
 /* ───────────── 웹 앱 진입점 ───────────── */
