@@ -10,22 +10,23 @@
 <link rel="stylesheet" href="assets/lucian.css?v=20261031e">
 <link rel="stylesheet" href="assets/style.css?v=20261031e">
 <link rel="stylesheet" href="assets/refresh.css?v=20261031-design2">
-<style id="checklist-compact-20261102">
+<style id="checklist-compact-20261102-inline">
 /* Checklist density override; load after refresh.css. */
 #teacherView .chips { margin-block:10px 8px; }
-#tList { padding:12px 14px; margin-bottom:8px; }
+#tList { padding:8px 10px; margin-bottom:6px; }
 #tList .u014-head { margin:0; padding-bottom:6px; gap:8px; }
 #tList .u014-sub { margin-top:2px; }
-#tList .u014-list { margin:4px 0 0; gap:8px; align-items:start; }
-#tList .u014-list>li { padding:10px 12px; gap:4px; }
-#tList .u014-row { padding:0; gap:10px; }
+#tList .u014-list { margin:2px 0 0; gap:6px; align-items:start; }
+#tList .u014-list>li { display:grid; grid-template-columns:minmax(0,1fr) fit-content(44%); padding:7px 9px; gap:2px 6px; align-items:start; }
+#tList .u014-row { grid-column:1; min-width:0; padding:0; gap:8px; }
 #tList .u014-t { font-size:15px; line-height:1.4; }
-#tList .u014-tag { margin-left:36px; padding-block:2px; }
-#tList .rec-sum { padding-left:36px; min-height:28px; line-height:1.35; gap:6px; }
+#tList .u014-tag { grid-column:2; grid-row:1; justify-self:end; margin:2px 0 0; padding-block:2px; max-width:100%; overflow-wrap:anywhere; }
+#tList .rec-sum, #tList .rec, #tList .more { grid-column:1 / -1; min-width:0; }
+#tList .rec-sum { padding-left:34px; min-height:28px; line-height:1.35; gap:6px; }
 #tList .rs-tx { min-width:0; overflow-wrap:anywhere; }
 #tList .rs-edit { min-height:28px; padding:3px 9px; }
-#tList .more { padding-left:36px; margin:0; }
-#tList .more summary { padding-block:3px; min-height:24px; box-sizing:border-box; }
+#tList .more { padding-left:34px; margin:0; }
+#tList .more summary { padding-block:1px; min-height:24px; box-sizing:border-box; }
 #tList .more p { margin-block:4px; }
 #tList [hidden] { display:none !important; }
 @media (min-width:1000px) {
@@ -34,9 +35,9 @@
   }
 }
 @media (max-width:640px) {
-  #tList { padding:10px; }
+  #tList { padding:8px; }
   #tList .u014-list { grid-template-columns:1fr; gap:6px; }
-  #tList .u014-list>li { padding:10px; }
+  #tList .u014-list>li { padding:7px 8px; }
   #tList .rs-edit { min-height:36px; }
   #tList .more summary { padding-block:6px; }
 }
