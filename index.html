@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="assets/lucian.css?v=20261031e">
 <link rel="stylesheet" href="assets/style.css?v=20261031e">
 <link rel="stylesheet" href="assets/refresh.css?v=20261031-design2">
-<style id="checklist-compact-20261102-inline">
+<style id="checklist-compact-20261102-no-strike">
 /* Checklist density override; load after refresh.css. */
 #teacherView .chips { margin-block:10px 8px; }
 #tList { padding:8px 10px; margin-bottom:6px; }
@@ -41,6 +41,10 @@
   #tList .rs-edit { min-height:36px; }
   #tList .more summary { padding-block:6px; }
 }
+
+/* Completed courses use card color without a title strike-through. */
+#tList .u014-t::after { content:none; display:none; }
+#tList .u014-in:checked~.u014-t { color:var(--ux-ink); }
 </style>
 </head>
 <body>
